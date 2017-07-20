@@ -34,15 +34,22 @@ public class KvMatchIndexBuilder {
         IndexNode indexNode = null;
         Map<Double, IndexNode> indexNodeMap = new HashMap<>();
         long lastTime = 0;
+        double lastValue = 0;
         double ex = 0;
         while (dataSet.next()) {
             RowRecord row = dataSet.getCurrentRecord();
-            System.out.println(row.getTime() + "," + Arrays.toString(row.getFields().toArray()));
 
             long curTime = row.getTime();
-            if (lastTime == 0) lastTime = curTime - 1;
+            double curValue = Double.parseDouble(row.getFields().get(0).getStringValue());  // TODO: improve for performance
+            logger.debug("{}: {}", curTime, curValue);
+            if (lastTime == 0) {
+                lastTime = curTime - 1;
+                lastValue = curValue;
+            }
+            double deltaValue = (curValue - lastValue) / (curTime - lastTime);
             for (long time = lastTime + 1; time <= curTime; time++) {
-                ex += Double.parseDouble(row.getFields().get(0).getStringValue());  // TODO: improve for performance
+                logger.debug("+{}: {}", time, lastValue + deltaValue * (time - lastTime));
+                ex += lastValue + deltaValue * (time - lastTime);
 
                 if (time % KvMatchConfig.WINDOW_LENGTH == 0) {  // a new disjoint window of data
                     double mean = ex / KvMatchConfig.WINDOW_LENGTH;
@@ -74,12 +81,16 @@ public class KvMatchIndexBuilder {
                 }
             }
             lastTime = curTime;
+            lastValue = curValue;
         }
         if (indexNode != null && !indexNode.getPositions().isEmpty()) {  // put the last node
             indexNodeMap.put(lastMeanRound, indexNode);
         }
 
         // Step 2: make up index structure
+        for (Map.Entry<Double, IndexNode> entry : indexNodeMap.entrySet()) {
+            System.out.println(entry.getKey() + ": " + entry.getValue().toString());
+        }
 
         // Step 3: store to disk
 
