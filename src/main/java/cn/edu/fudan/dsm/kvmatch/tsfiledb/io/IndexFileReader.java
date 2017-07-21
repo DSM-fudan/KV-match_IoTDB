@@ -3,9 +3,7 @@ package cn.edu.fudan.dsm.kvmatch.tsfiledb.io;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.entity.IndexNode;
 import org.apache.hadoop.hbase.util.Pair;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,8 +15,12 @@ import java.util.Map;
  */
 public class IndexFileReader implements Closeable {
 
-    public static Map<Double, List<IndexNode>> read(File file, Double keyFrom, Double keyTo) {
-        return null;
+    private File file;
+    private BufferedInputStream reader;
+
+    public IndexFileReader(File file) throws FileNotFoundException {
+        this.file = file;
+        this.reader = new BufferedInputStream(new FileInputStream(file));
     }
 
     public Map<Double, List<IndexNode>> readIndexes() {
