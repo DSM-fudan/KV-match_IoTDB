@@ -38,7 +38,7 @@ public class IndexFileReader implements Closeable {
             reader.read(bytes, 0, Bytes.SIZEOF_LONG);
             long lastLineOffset = Bytes.toLong(bytes);
             long length = file.length() - lastLineOffset;
-            
+
         } catch (IOException e) {
             e.printStackTrace();
         }

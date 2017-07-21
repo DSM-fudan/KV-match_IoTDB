@@ -21,10 +21,14 @@ public class IndexFileWriter implements Closeable {
     long offset;
     List<Long> offsets = new ArrayList<>(); //last line
 
-    public IndexFileWriter(String targetFilePath) throws FileNotFoundException {
+    public IndexFileWriter(String targetFilePath) throws IOException {
         this.file = new File(targetFilePath);
+        if (!file.getParentFile().exists()) {
+            if (!file.getParentFile().mkdirs()) {
+                throw new IOException("Can not create directory " + file.getParent());
+            }
+        }
         this.writer = new BufferedOutputStream(new FileOutputStream(file, true));
-        offset = 0;
     }
 
     public void writeIndexes(Map<Double, IndexNode> indexes) {
