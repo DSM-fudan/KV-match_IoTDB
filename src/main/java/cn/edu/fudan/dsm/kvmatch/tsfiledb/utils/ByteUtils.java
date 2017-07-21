@@ -1,6 +1,6 @@
 package cn.edu.fudan.dsm.kvmatch.tsfiledb.utils;
 
-import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.entity.IndexNode;
+import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.IndexNode;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.nio.ByteBuffer;

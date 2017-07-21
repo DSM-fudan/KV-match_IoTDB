@@ -1,7 +1,6 @@
-package cn.edu.fudan.dsm.kvmatch.tsfiledb.common.entity;
+package cn.edu.fudan.dsm.kvmatch.tsfiledb.common;
 
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.hadoop.hbase.util.Pair;
+import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.Bytes;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,7 +73,7 @@ public class IndexNode {
         if (isPacking) {  // write last count
             result[length-count-1] = (byte) ((count - 1) / 2 - 128);
         }
-        // TODO: resize array, use bytebuffer instead?
+        // TODO: resize array, use ByteBuffer instead?
         byte[] newArray = new byte[length];
         System.arraycopy(result, 0, newArray, 0, length);
         return newArray;

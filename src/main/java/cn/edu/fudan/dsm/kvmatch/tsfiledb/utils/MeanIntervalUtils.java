@@ -1,7 +1,6 @@
 package cn.edu.fudan.dsm.kvmatch.tsfiledb.utils;
 
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.hadoop.hbase.util.Pair;
+import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.Pair;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -13,14 +12,13 @@ import java.util.List;
 public class MeanIntervalUtils {
 
     /**
-     * The minimum value of time series, which should be adapt to the real data.
+     * The minimum value of time series, which should be adapt to the real data. (only for HBase)
      */
     private static double MINIMUM = 1000000;
 
     /**
      * Round float number to half integer.
-     * For Example: 1.9 ->  1.5,  1.4 ->  1.0,  1.5 ->  1.5
-     *             -1.9 -> -2.0, -1.4 -> -1.5, -1.5 -> -1.5
+     * For Example: 1.9 -> 1.5,  1.4 -> 1.0,  1.5 -> 1.5, -1.9 -> -2.0, -1.4 -> -1.5, -1.5 -> -1.5
      * TODO: should be improved later
      *
      * @param value should be rounded
@@ -38,7 +36,8 @@ public class MeanIntervalUtils {
 
     /**
      * toRound based on statistic information (lower bound)
-     * @param value should be rounded
+     *
+     * @param value         should be rounded
      * @param statisticInfo statistic information of index table
      * @return rounded value based on statistic information
      */
@@ -56,8 +55,7 @@ public class MeanIntervalUtils {
 
     /**
      * To upper bound of mean interval.
-     * For example: 1.0 ->  1.5,  1.5 ->  2.0
-     *             -1.0 -> -0.5, -1.5 -> -1.0
+     * For example: 1.0 -> 1.5,  1.5 -> 2.0, -1.0 -> -0.5, -1.5 -> -1.0
      *
      * @param round mean interval round
      * @return upper bound
@@ -68,7 +66,8 @@ public class MeanIntervalUtils {
 
     /**
      * toUpper based on statistic information (upper bound)
-     * @param round mean interval round
+     *
+     * @param round         mean interval round
      * @param statisticInfo statistic information of index table
      * @return upper bound based on statistic information
      */
@@ -106,8 +105,8 @@ public class MeanIntervalUtils {
      * 1. Convert to double value;
      * 2. Minus the minimum value.
      *
-     * @param bytes
-     * @return
+     * @param bytes the bytes need to be converted
+     * @return corresponding double value
      */
     public static double toDouble(byte[] bytes) {
         return Bytes.toDouble(bytes) - MINIMUM;

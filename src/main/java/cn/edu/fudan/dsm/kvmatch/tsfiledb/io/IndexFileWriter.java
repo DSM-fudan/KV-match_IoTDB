@@ -1,10 +1,10 @@
 package cn.edu.fudan.dsm.kvmatch.tsfiledb.io;
 
-import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.entity.IndexNode;
+import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.IndexNode;
+import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.Pair;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.ByteUtils;
+import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.Bytes;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.MeanIntervalUtils;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.hadoop.hbase.util.Pair;
 
 import java.io.*;
 import java.util.ArrayList;
