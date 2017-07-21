@@ -1,7 +1,7 @@
 package cn.edu.fudan.dsm.kvmatch.tsfiledb;
 
-import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.QueryResult;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.QueryConfig;
+import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.QueryResult;
 import cn.edu.thu.tsfile.timeseries.read.qp.Path;
 
 import java.util.concurrent.Callable;

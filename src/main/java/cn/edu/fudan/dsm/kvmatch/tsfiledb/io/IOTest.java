@@ -10,18 +10,20 @@ import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Created by dell on 2017/7/21.
+ * @author Ningting Pan
  */
-public class Test {
+public class IOTest {
 
     public static void main(String[] args) throws IOException {
         // test on windows
-        String indexPath = "C:\\Users\\dell\\Desktop\\BDMS\\KV-match-TsFileDB\\KV-match_TsFileDB\\index";
+//        String indexPath = "C:\\Users\\dell\\Desktop\\BDMS\\KV-match-TsFileDB\\KV-match_TsFileDB\\index";
+        // test on Linux
+        String indexPath = "/home/wujy/Dev/kvmatch-tsfiledb/index.test";
 
         IndexFileWriter indexFileWriter = new IndexFileWriter(indexPath);
 
         // fake data
-        List<Pair<Double, Pair<Integer, Integer>>> statisticInfo = new ArrayList();
+        List<Pair<Double, Pair<Integer, Integer>>> statisticInfo = new ArrayList<>();
         double key = 0.1;
         IndexNode indexNode = generateIndexNode();
         statisticInfo.add(new Pair<>(key, new Pair<>(indexNode.getNumOfOffsets(), indexNode.getNumOfIntervals())));
@@ -48,10 +50,10 @@ public class Test {
         Map<Double, IndexNode> indexNodeMap = indexFileReader.readIndexes(0.1, 0.25);
         List<Pair<Double, Pair<Integer, Integer>>> pairList = indexFileReader.readStatisticInfo();
         for (Map.Entry<Double, IndexNode> entry : indexNodeMap.entrySet()) {
-            System.out.println("key: "+entry.getKey()+"  value:"+entry.getValue().toString());
+            System.out.println("key: " + entry.getKey() + "  value:" + entry.getValue().toString());
         }
         for (Pair<Double, Pair<Integer, Integer>> pair : pairList) {
-            System.out.println(pair.left+":  "+pair.right.left+";  "+pair.right.right);
+            System.out.println(pair.left + ":  " + pair.right.left + ";  " + pair.right.right);
         }
         indexFileReader.close();
     }
@@ -60,13 +62,12 @@ public class Test {
         IndexNode node = new IndexNode();
         int randomNum = ThreadLocalRandom.current().nextInt(0, 10 + 1);
         for (int i = 0; i < randomNum; i += 3) {
-            node.getPositions().add(new Pair<>(i+100000000000L, i+100000000002L));
+            node.getPositions().add(new Pair<>(i + 100000000000L, i + 100000000002L));
         }
         randomNum = ThreadLocalRandom.current().nextInt(0, 10 + 1);
         for (int i = 0; i < randomNum; i += 3) {
-            node.getPositions().add(new Pair<>(i+1000000000000000L, i+1000000000000002L));
+            node.getPositions().add(new Pair<>(i + 1000000000000000L, i + 1000000000000002L));
         }
         return node;
     }
-
 }

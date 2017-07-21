@@ -26,7 +26,7 @@ public class ByteUtils {
         List<Long> offsets = new ArrayList<>();
         int size = bytes.length / Bytes.SIZEOF_LONG;
         int curOffset = 0;
-        for (int i=0; i<size; i++) {
+        for (int i = 0; i < size; i++) {
             byte[] tmp = new byte[Bytes.SIZEOF_LONG];
             System.arraycopy(bytes, curOffset, tmp, 0, Bytes.SIZEOF_LONG);
             offsets.add(Bytes.toLong(tmp));
@@ -42,7 +42,7 @@ public class ByteUtils {
         return combineBytes;
     }
 
-    public static byte[] listTripleToByteArray(List<Pair<Double, Pair<Integer,Integer>>> statisticInfo) {
+    public static byte[] listTripleToByteArray(List<Pair<Double, Pair<Integer, Integer>>> statisticInfo) {
         byte[] result = new byte[(Bytes.SIZEOF_DOUBLE + 2 * Bytes.SIZEOF_INT) * statisticInfo.size()];
         System.arraycopy(Bytes.toBytes(statisticInfo.get(0).left), 0, result, 0, Bytes.SIZEOF_DOUBLE);
         System.arraycopy(Bytes.toBytes(statisticInfo.get(0).right.left), 0, result, Bytes.SIZEOF_DOUBLE, Bytes.SIZEOF_INT);
@@ -57,12 +57,12 @@ public class ByteUtils {
         return result;
     }
 
-    public static List<Pair<Double,Pair<Integer,Integer>>> byteArrayToListTriple(byte[] bytes) {
-        List<Pair<Double,Pair<Integer,Integer>>> statisticInfo = new ArrayList<>();
+    public static List<Pair<Double, Pair<Integer, Integer>>> byteArrayToListTriple(byte[] bytes) {
+        List<Pair<Double, Pair<Integer, Integer>>> statisticInfo = new ArrayList<>();
         int tripleSize = Bytes.SIZEOF_DOUBLE + 2 * Bytes.SIZEOF_INT;
         int infoSize = bytes.length / tripleSize;
         int curOffset = 0;
-        for (int i=0; i<infoSize; i++) {
+        for (int i = 0; i < infoSize; i++) {
             byte[] t1 = new byte[Bytes.SIZEOF_DOUBLE];
             byte[] t2 = new byte[Bytes.SIZEOF_INT];
             byte[] t3 = new byte[Bytes.SIZEOF_INT];

@@ -16,18 +16,19 @@ import java.util.*;
 public class IndexFileWriter implements Closeable {
 
     private BufferedOutputStream writer;
+
     private long offset;
+
     private List<Long> offsets = new ArrayList<>();  // last line
 
     public IndexFileWriter(String targetFilePath) throws IOException {
         File file = new File(targetFilePath);
-        if (file.exists()) file.delete();
         if (!file.getParentFile().exists()) {
             if (!file.getParentFile().mkdirs()) {
                 throw new IOException("Can not create directory " + file.getParent());
             }
         }
-        this.writer = new BufferedOutputStream(new FileOutputStream(file, true));
+        this.writer = new BufferedOutputStream(new FileOutputStream(file));
         offset = 0L;
     }
 
