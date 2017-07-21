@@ -12,7 +12,7 @@ import cn.edu.thu.tsfile.timeseries.read.support.RowRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +33,7 @@ public class KvMatchIndexBuilder {
         this.columnPath = columnPath;
     }
 
-    public boolean build(QueryDataSet dataSet, String targetFilePath) throws FileNotFoundException {
+    public boolean build(QueryDataSet dataSet, String targetFilePath) throws IOException {
         // Step 1: scan data set and extract window features
         Double lastMeanRound = null;
         IndexNode indexNode = null;
@@ -91,8 +91,7 @@ public class KvMatchIndexBuilder {
             indexNodeMap.put(lastMeanRound, indexNode);
         }
 
-        // Step 2: make up index structure
-        // get ordered statistic list and average number of disjoint window intervals
+        // Step 2: get ordered statistic list and average number of disjoint window intervals
         List<Pair<Double, Pair<Integer, Integer>>> rawStatisticInfo = new ArrayList<>(indexNodeMap.size());
         StatisticInfo average = new StatisticInfo();
         for (Map.Entry entry : indexNodeMap.entrySet()) {
@@ -103,7 +102,7 @@ public class KvMatchIndexBuilder {
         rawStatisticInfo.sort((o1, o2) -> -o1.getFirst().compareTo(o2.getFirst()));
         logger.info("number of disjoint window intervals: average: {}, minimum: {}, maximum: {}", average.getAverage(), average.getMinimum(), average.getMaximum());
 
-        // merge adjacent index nodes satisfied criterion, and store to index file
+        // Step 3: merge adjacent index nodes satisfied criterion, and store to index file
         IndexFileWriter indexFileWriter = new IndexFileWriter(targetFilePath);
         List<Pair<Double, Pair<Integer, Integer>>> statisticInfo = new ArrayList<>(indexNodeMap.size());
         IndexNode last = indexNodeMap.get(rawStatisticInfo.get(0).getFirst());
@@ -125,13 +124,13 @@ public class KvMatchIndexBuilder {
                 last = current;
             }
         }
-        // store the last row to index file
-        double key = rawStatisticInfo.get(rawStatisticInfo.size()-1).getFirst();
+        double key = rawStatisticInfo.get(rawStatisticInfo.size()-1).getFirst();  // store the last row to index file
         indexFileWriter.writeIndex(key, last);
         statisticInfo.add(new Pair<>(key, last.getStatisticInfoPair()));
 
-        // Step 3: store to disk
+        // Step 4: store statistic info to index file and close file
         indexFileWriter.writeStatisticInfo(statisticInfo);
+        indexFileWriter.close();
         return true;
     }
 }

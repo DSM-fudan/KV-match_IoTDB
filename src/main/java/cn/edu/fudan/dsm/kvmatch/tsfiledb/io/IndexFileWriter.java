@@ -21,8 +21,13 @@ public class IndexFileWriter implements Closeable {
     private File file;
     private BufferedOutputStream writer;
 
-    public IndexFileWriter(String targetFilePath) throws FileNotFoundException {
+    public IndexFileWriter(String targetFilePath) throws IOException {
         this.file = new File(targetFilePath);
+        if (!file.getParentFile().exists()) {
+            if (!file.getParentFile().mkdirs()) {
+                throw new IOException("Can not create directory " + file.getParent());
+            }
+        }
         this.writer = new BufferedOutputStream(new FileOutputStream(file));
     }
 
