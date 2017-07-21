@@ -4,7 +4,6 @@ import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.IndexNode;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.Pair;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.ByteUtils;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.Bytes;
-import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.MeanIntervalUtils;
 
 import java.io.*;
 import java.util.*;
@@ -52,17 +51,7 @@ public class IndexFileWriter implements Closeable {
         offsets.add(offset);
         // store statistic information for query order optimization
         statisticInfo.sort(Comparator.comparing(Pair::getFirst));
-        byte[] result = new byte[(Bytes.SIZEOF_DOUBLE + 2 * Bytes.SIZEOF_INT) * statisticInfo.size()];
-        System.arraycopy(MeanIntervalUtils.toBytes(statisticInfo.get(0).getFirst()), 0, result, 0, Bytes.SIZEOF_DOUBLE);
-        System.arraycopy(Bytes.toBytes(statisticInfo.get(0).getSecond().getFirst()), 0, result, Bytes.SIZEOF_DOUBLE, Bytes.SIZEOF_INT);
-        System.arraycopy(Bytes.toBytes(statisticInfo.get(0).getSecond().getSecond()), 0, result, Bytes.SIZEOF_DOUBLE + Bytes.SIZEOF_INT, Bytes.SIZEOF_INT);
-        for (int i = 1; i < statisticInfo.size(); i++) {
-            statisticInfo.get(i).getSecond().setFirst(statisticInfo.get(i).getSecond().getFirst() + statisticInfo.get(i - 1).getSecond().getFirst());
-            statisticInfo.get(i).getSecond().setSecond(statisticInfo.get(i).getSecond().getSecond() + statisticInfo.get(i - 1).getSecond().getSecond());
-            System.arraycopy(MeanIntervalUtils.toBytes(statisticInfo.get(i).getFirst()), 0, result, i * (Bytes.SIZEOF_DOUBLE + 2 * Bytes.SIZEOF_INT), Bytes.SIZEOF_DOUBLE);
-            System.arraycopy(Bytes.toBytes(statisticInfo.get(i).getSecond().getFirst()), 0, result, i * (Bytes.SIZEOF_DOUBLE + 2 * Bytes.SIZEOF_INT) + Bytes.SIZEOF_DOUBLE, Bytes.SIZEOF_INT);
-            System.arraycopy(Bytes.toBytes(statisticInfo.get(i).getSecond().getSecond()), 0, result, i * (Bytes.SIZEOF_DOUBLE + 2 * Bytes.SIZEOF_INT) + Bytes.SIZEOF_DOUBLE + Bytes.SIZEOF_INT, Bytes.SIZEOF_INT);
-        }
+        byte[] result = ByteUtils.listTripleToByteArray(statisticInfo);
         // write result and record offset
         writeBytesToFile(result);
         offset += result.length;
