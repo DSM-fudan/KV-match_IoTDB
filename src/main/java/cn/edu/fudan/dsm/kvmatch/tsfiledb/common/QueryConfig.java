@@ -1,7 +1,5 @@
 package cn.edu.fudan.dsm.kvmatch.tsfiledb.common;
 
-import cn.edu.thu.tsfile.common.utils.Pair;
-
 import java.util.List;
 
 /**
@@ -11,9 +9,11 @@ import java.util.List;
  */
 public class QueryConfig {
 
-    private int windowLength = IndexConfig.DEFAULT_WINDOW_LENGTH;
+    public static final double STEP_2_TIME_ESTIMATE_COEFFICIENT_A = 9.72276547123376;
+    public static final double STEP_2_TIME_ESTIMATE_COEFFICIENT_B = 0.0106737255022236;
+    public static final double STEP_2_TIME_ESTIMATE_INTERCEPT = 0.0;
 
-    private List<Pair<Long, Double>> querySeries;
+    private List<Double> querySeries;
 
     private double epsilon;
 
@@ -21,23 +21,42 @@ public class QueryConfig {
 
     private double beta;
 
-    public QueryConfig(List<Pair<Long, Double>> querySeries, double epsilon) {
+    private int windowLength;
+
+    private boolean useCache;
+
+    private QueryConfig() {
+        this.windowLength = IndexConfig.DEFAULT_WINDOW_LENGTH;
+        this.alpha = 1.0;
+        this.beta = 0.0;
+        this.useCache = true;
+    }
+
+    public QueryConfig(List<Double> querySeries, double epsilon) {
+        this();
         this.querySeries = querySeries;
         this.epsilon = epsilon;
     }
 
-    public QueryConfig(List<Pair<Long, Double>> querySeries, double epsilon, double alpha, double beta) {
-        this.querySeries = querySeries;
-        this.epsilon = epsilon;
+    public QueryConfig(List<Double> querySeries, double epsilon, double alpha, double beta) {
+        this(querySeries, epsilon);
         this.alpha = alpha;
         this.beta = beta;
     }
 
-    public List<Pair<Long, Double>> getQuerySeries() {
+    public boolean isUseCache() {
+        return useCache;
+    }
+
+    public void setUseCache(boolean useCache) {
+        this.useCache = useCache;
+    }
+
+    public List<Double> getQuerySeries() {
         return querySeries;
     }
 
-    public void setQuerySeries(List<Pair<Long, Double>> querySeries) {
+    public void setQuerySeries(List<Double> querySeries) {
         this.querySeries = querySeries;
     }
 
