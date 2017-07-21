@@ -4,7 +4,6 @@ import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.entity.IndexNode;
 
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This is the class implementing conversion of objects and byte arrays.
@@ -23,7 +22,7 @@ public class ByteUtils {
         return ByteBuffer.wrap(bytes).getDouble();
     }
 
-    public static byte[] listIndexNodeToByteArray(Map<Double, List<IndexNode>> indexs) {
+    public static byte[] listIndexNodeToByteArray(List<IndexNode> indexNodes) {
         return null;
     }
 }
