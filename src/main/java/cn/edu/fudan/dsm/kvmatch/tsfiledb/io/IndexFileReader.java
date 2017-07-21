@@ -1,7 +1,7 @@
 package cn.edu.fudan.dsm.kvmatch.tsfiledb.io;
 
-import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.entity.IndexNode;
-import org.apache.hadoop.hbase.util.Pair;
+import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.IndexNode;
+import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.Pair;
 
 import java.io.*;
 import java.util.ArrayList;
