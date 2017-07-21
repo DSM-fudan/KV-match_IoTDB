@@ -1,4 +1,4 @@
-package cn.edu.fudan.dsm.kvmatch.tsfiledb.io;
+package cn.edu.fudan.dsm.kvmatch.tsfiledb.utils;
 
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.entity.IndexNode;
 
@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This is the class implementing conversion of objects and byte arrays
+ * This is the class implementing conversion of objects and byte arrays.
  *
  * @author Ningting Pan
  */
-public class ByteConvert {
+public class ByteUtils {
 
     public static byte[] doubleToByteArray(double value) {
         byte[] bytes = new byte[8];

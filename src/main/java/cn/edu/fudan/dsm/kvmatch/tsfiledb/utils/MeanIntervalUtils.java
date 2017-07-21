@@ -13,9 +13,9 @@ import java.util.List;
 public class MeanIntervalUtils {
 
     /**
-     * The minumum value of time series, which should be adapt to the real data.
+     * The minimum value of time series, which should be adapt to the real data.
      */
-    public static double MINIMUM = 1000000;
+    private static double MINIMUM = 1000000;
 
     /**
      * Round float number to half integer.
@@ -70,7 +70,7 @@ public class MeanIntervalUtils {
      * toUpper based on statistic information (upper bound)
      * @param round mean interval round
      * @param statisticInfo statistic information of index table
-     * @return upper bound basedo on statistic information
+     * @return upper bound based on statistic information
      */
     public static double toUpper(double round, List<Pair<Double, Pair<Integer, Integer>>> statisticInfo) {
         double rounded = toUpper(round);
