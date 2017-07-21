@@ -127,6 +127,18 @@ public class IndexNode {
         this.positions = positions;
     }
 
+    public int getNumOfIntervals() {
+        return positions.size();
+    }
+
+    public long getNumOfOffsets() {
+        long sum = 0;
+        for (Pair<Long, Long> pair : positions) {
+            sum += pair.getSecond() - pair.getFirst() + 1;
+        }
+        return sum;
+    }
+
     public static void main(String args[]) {
         IndexNode node = new IndexNode();
         for (int i = 0; i < 100; i += 5) {

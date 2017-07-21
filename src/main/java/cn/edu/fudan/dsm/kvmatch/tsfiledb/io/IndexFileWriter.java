@@ -37,6 +37,10 @@ public class IndexFileWriter implements Closeable {
         }
     }
 
+    public void writeIndex(double key, IndexNode value) {
+
+    }
+
     public void writeStatisticInfo(List<Pair<Double, Pair<Integer, Integer>>> statisticInfo) {
         // store statistic information for query order optimization
         statisticInfo.sort(Comparator.comparing(Pair::getFirst));
