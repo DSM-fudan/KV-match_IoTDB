@@ -32,7 +32,7 @@ public class IndexFileWriter implements Closeable {
             Double key = entry.getKey();
             List<IndexNode> indexNodes = entry.getValue();
             byte[] keyBytes = ByteUtils.doubleToByteArray(key);
-            byte[] indexNodesBytes = ByteUtils.listIndexNodeToByteArray(indexes);
+            byte[] indexNodesBytes = ByteUtils.listIndexNodeToByteArray(indexNodes);
             writeALineBytesToFile(keyBytes, indexNodesBytes);
         }
     }
