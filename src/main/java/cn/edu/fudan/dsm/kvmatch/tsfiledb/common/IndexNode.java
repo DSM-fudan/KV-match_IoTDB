@@ -1,6 +1,7 @@
 package cn.edu.fudan.dsm.kvmatch.tsfiledb.common;
 
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.Bytes;
+import cn.edu.thu.tsfile.common.utils.Pair;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,8 +28,8 @@ public class IndexNode {
          */
         byte[] result = new byte[Bytes.SIZEOF_LONG * positions.size() * 2];
         for (int i = 0; i < positions.size(); i++) {
-            System.arraycopy(Bytes.toBytes(positions.get(i).getFirst()), 0, result, 2 * i * Bytes.SIZEOF_LONG, Bytes.SIZEOF_LONG);
-            System.arraycopy(Bytes.toBytes(positions.get(i).getSecond()), 0, result, (2 * i + 1) * Bytes.SIZEOF_LONG, Bytes.SIZEOF_LONG);
+            System.arraycopy(Bytes.toBytes(positions.get(i).left), 0, result, 2 * i * Bytes.SIZEOF_LONG, Bytes.SIZEOF_LONG);
+            System.arraycopy(Bytes.toBytes(positions.get(i).right), 0, result, (2 * i + 1) * Bytes.SIZEOF_LONG, Bytes.SIZEOF_LONG);
         }
         return result;
     }
@@ -43,20 +44,20 @@ public class IndexNode {
         boolean isPacking = false;
         while (index < positions.size()) {
             if (!isPacking) {
-                System.arraycopy(Bytes.toBytes(positions.get(index).getFirst()), 0, result, length, Bytes.SIZEOF_LONG);
+                System.arraycopy(Bytes.toBytes(positions.get(index).left), 0, result, length, Bytes.SIZEOF_LONG);
                 length += Bytes.SIZEOF_LONG + Bytes.SIZEOF_BYTE;  // first: 4 bytes, remain 1 byte for count
 
-                long diff = positions.get(index).getSecond() - positions.get(index).getFirst();
+                long diff = positions.get(index).right - positions.get(index).left;
                 result[length++] = (byte) (diff - 128);
 
                 isPacking = true;
                 count = 1;
             } else {
-                long diff = positions.get(index).getFirst() - positions.get(index-1).getSecond();
+                long diff = positions.get(index).left - positions.get(index-1).right;
                 if (diff < MAXIMUM_DIFF && (count - 1) / 2 + 2 < MAXIMUM_DIFF) {
                     result[length++] = (byte) (diff - 128);
 
-                    diff = positions.get(index).getSecond() - positions.get(index).getFirst();
+                    diff = positions.get(index).right - positions.get(index).left;
                     result[length++] = (byte) (diff - 128);
 
                     count += 2;
@@ -133,7 +134,7 @@ public class IndexNode {
     public int getNumOfOffsets() {
         int sum = 0;
         for (Pair<Long, Long> pair : positions) {
-            sum += pair.getSecond() - pair.getFirst() + 1;
+            sum += pair.right - pair.left + 1;
         }
         return sum;
     }
@@ -152,7 +153,7 @@ public class IndexNode {
         }
         System.out.println("Original:");
         for (int i = 0; i < node.getPositions().size(); i++) {
-            System.out.println(node.getPositions().get(i).getFirst() + ", " + node.getPositions().get(i).getSecond());
+            System.out.println(node.getPositions().get(i).left + ", " + node.getPositions().get(i).right);
         }
         byte[] bytes = node.toBytesCompact();
 
@@ -162,7 +163,7 @@ public class IndexNode {
         node2.parseBytesCompact(bytes);
         System.out.println("Parsed:");
         for (int i = 0; i < node2.getPositions().size(); i++) {
-            System.out.println(node2.getPositions().get(i).getFirst() + ", " + node2.getPositions().get(i).getSecond());
+            System.out.println(node2.getPositions().get(i).left + ", " + node2.getPositions().get(i).right);
         }
     }
 }

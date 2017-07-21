@@ -1,10 +1,10 @@
 package cn.edu.fudan.dsm.kvmatch.tsfiledb.io;
 
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.IndexNode;
-import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.Pair;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.ByteUtils;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.Bytes;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.MeanIntervalUtils;
+import cn.edu.thu.tsfile.common.utils.Pair;
 
 import java.io.*;
 import java.util.*;
@@ -51,17 +51,17 @@ public class IndexFileWriter implements Closeable {
     public void writeStatisticInfo(List<Pair<Double, Pair<Integer, Integer>>> statisticInfo) throws IOException {
         offsets.add(offset);
         // store statistic information for query order optimization
-        statisticInfo.sort(Comparator.comparing(Pair::getFirst));
+        statisticInfo.sort(Comparator.comparing(o -> o.left));
         byte[] result = new byte[(Bytes.SIZEOF_DOUBLE + 2 * Bytes.SIZEOF_INT) * statisticInfo.size()];
-        System.arraycopy(MeanIntervalUtils.toBytes(statisticInfo.get(0).getFirst()), 0, result, 0, Bytes.SIZEOF_DOUBLE);
-        System.arraycopy(Bytes.toBytes(statisticInfo.get(0).getSecond().getFirst()), 0, result, Bytes.SIZEOF_DOUBLE, Bytes.SIZEOF_INT);
-        System.arraycopy(Bytes.toBytes(statisticInfo.get(0).getSecond().getSecond()), 0, result, Bytes.SIZEOF_DOUBLE + Bytes.SIZEOF_INT, Bytes.SIZEOF_INT);
+        System.arraycopy(MeanIntervalUtils.toBytes(statisticInfo.get(0).left), 0, result, 0, Bytes.SIZEOF_DOUBLE);
+        System.arraycopy(Bytes.toBytes(statisticInfo.get(0).right.left), 0, result, Bytes.SIZEOF_DOUBLE, Bytes.SIZEOF_INT);
+        System.arraycopy(Bytes.toBytes(statisticInfo.get(0).right.right), 0, result, Bytes.SIZEOF_DOUBLE + Bytes.SIZEOF_INT, Bytes.SIZEOF_INT);
         for (int i = 1; i < statisticInfo.size(); i++) {
-            statisticInfo.get(i).getSecond().setFirst(statisticInfo.get(i).getSecond().getFirst() + statisticInfo.get(i - 1).getSecond().getFirst());
-            statisticInfo.get(i).getSecond().setSecond(statisticInfo.get(i).getSecond().getSecond() + statisticInfo.get(i - 1).getSecond().getSecond());
-            System.arraycopy(MeanIntervalUtils.toBytes(statisticInfo.get(i).getFirst()), 0, result, i * (Bytes.SIZEOF_DOUBLE + 2 * Bytes.SIZEOF_INT), Bytes.SIZEOF_DOUBLE);
-            System.arraycopy(Bytes.toBytes(statisticInfo.get(i).getSecond().getFirst()), 0, result, i * (Bytes.SIZEOF_DOUBLE + 2 * Bytes.SIZEOF_INT) + Bytes.SIZEOF_DOUBLE, Bytes.SIZEOF_INT);
-            System.arraycopy(Bytes.toBytes(statisticInfo.get(i).getSecond().getSecond()), 0, result, i * (Bytes.SIZEOF_DOUBLE + 2 * Bytes.SIZEOF_INT) + Bytes.SIZEOF_DOUBLE + Bytes.SIZEOF_INT, Bytes.SIZEOF_INT);
+            statisticInfo.get(i).right.left = statisticInfo.get(i).right.left + statisticInfo.get(i - 1).right.left;
+            statisticInfo.get(i).right.right = statisticInfo.get(i).right.right + statisticInfo.get(i - 1).right.right;
+            System.arraycopy(MeanIntervalUtils.toBytes(statisticInfo.get(i).left), 0, result, i * (Bytes.SIZEOF_DOUBLE + 2 * Bytes.SIZEOF_INT), Bytes.SIZEOF_DOUBLE);
+            System.arraycopy(Bytes.toBytes(statisticInfo.get(i).right.left), 0, result, i * (Bytes.SIZEOF_DOUBLE + 2 * Bytes.SIZEOF_INT) + Bytes.SIZEOF_DOUBLE, Bytes.SIZEOF_INT);
+            System.arraycopy(Bytes.toBytes(statisticInfo.get(i).right.right), 0, result, i * (Bytes.SIZEOF_DOUBLE + 2 * Bytes.SIZEOF_INT) + Bytes.SIZEOF_DOUBLE + Bytes.SIZEOF_INT, Bytes.SIZEOF_INT);
         }
         // write result and record offset
         writeBytesToFile(result);

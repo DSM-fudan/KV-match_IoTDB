@@ -1,6 +1,6 @@
 package cn.edu.fudan.dsm.kvmatch.tsfiledb.utils;
 
-import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.Pair;
+import cn.edu.thu.tsfile.common.utils.Pair;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -43,11 +43,11 @@ public class MeanIntervalUtils {
      */
     public static double toRound(double value, List<Pair<Double, Pair<Integer, Integer>>> statisticInfo) {
         double rounded = toRound(value);
-        int index = Collections.binarySearch(statisticInfo, new Pair<>(rounded, 0), Comparator.comparing(Pair::getFirst));
+        int index = Collections.binarySearch(statisticInfo, new Pair<>(rounded, 0), Comparator.comparing(o -> o.left));
         if (index < 0) {
             index = -(index + 1) - 1;
             if (index < 0) return rounded - 10000;
-            return statisticInfo.get(index).getFirst();
+            return statisticInfo.get(index).left;
         } else {
             return rounded;
         }
@@ -73,11 +73,11 @@ public class MeanIntervalUtils {
      */
     public static double toUpper(double round, List<Pair<Double, Pair<Integer, Integer>>> statisticInfo) {
         double rounded = toUpper(round);
-        int index = Collections.binarySearch(statisticInfo, new Pair<>(rounded, 0), Comparator.comparing(Pair::getFirst));
+        int index = Collections.binarySearch(statisticInfo, new Pair<>(rounded, 0), Comparator.comparing(o -> o.left));
         if (index < 0) {
             index = -(index + 1);
             if (index >= statisticInfo.size()) return rounded + 10000;
-            return statisticInfo.get(index).getFirst();
+            return statisticInfo.get(index).left;
         } else {
             return rounded;
         }

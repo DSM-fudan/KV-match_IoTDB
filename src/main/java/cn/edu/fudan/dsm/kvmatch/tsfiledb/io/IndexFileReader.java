@@ -1,9 +1,8 @@
 package cn.edu.fudan.dsm.kvmatch.tsfiledb.io;
 
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.IndexNode;
-import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.Pair;
-import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.ByteUtils;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.Bytes;
+import cn.edu.thu.tsfile.common.utils.Pair;
 
 import java.io.*;
 import java.util.ArrayList;
