@@ -1,6 +1,7 @@
 package cn.edu.fudan.dsm.kvmatch.tsfiledb.utils;
 
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.IndexNode;
+import org.apache.hadoop.hbase.util.Bytes;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.List;
 public class ByteUtils {
 
     public static byte[] doubleToByteArray(double value) {
-        byte[] bytes = new byte[8];
+        byte[] bytes = new byte[Bytes.SIZEOF_DOUBLE];
         ByteBuffer.wrap(bytes).putDouble(value);
         return bytes;
     }
@@ -24,5 +25,16 @@ public class ByteUtils {
 
     public static byte[] listIndexNodeToByteArray(List<IndexNode> indexNodes) {
         return null;
+    }
+
+    public static byte[] listLongToByteArray(List<Long> offsets) {
+        return null;
+    }
+
+    public static byte[] combineTwoByteArrays(byte[] firstBytes, byte[] secondBytes) {
+        byte[] combineBytes = new byte[firstBytes.length + secondBytes.length];
+        System.arraycopy(firstBytes, 0, combineBytes, 0, firstBytes.length);
+        System.arraycopy(secondBytes, 0, combineBytes, firstBytes.length, secondBytes.length);
+        return combineBytes;
     }
 }

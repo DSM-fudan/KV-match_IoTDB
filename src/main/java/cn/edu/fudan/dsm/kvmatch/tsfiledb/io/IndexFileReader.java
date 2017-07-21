@@ -18,9 +18,17 @@ public class IndexFileReader implements Closeable {
     private File file;
     private BufferedInputStream reader;
 
+    // Once open the file, read offsets
+    List<Long> offsets = new ArrayList<>();
+
     public IndexFileReader(String indexFilePath) throws FileNotFoundException {
         this.file = new File(indexFilePath);
         this.reader = new BufferedInputStream(new FileInputStream(file));
+        // read offsets' info
+        readOffsetInfo();
+    }
+
+    private void readOffsetInfo() {
     }
 
     public Map<Double, List<IndexNode>> readIndexes() {
@@ -34,7 +42,12 @@ public class IndexFileReader implements Closeable {
 
         return statisticInfo;
     }
-    
+
+    private byte[] readALineBytesFromFile(int fromOffset, int lengthOfBytes) {
+
+        return null;
+    }
+
     @Override
     public void close() throws IOException {
         
