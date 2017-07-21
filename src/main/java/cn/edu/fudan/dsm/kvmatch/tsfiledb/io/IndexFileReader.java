@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * File output of KV-match-TsFileDB-index.
+ * Index file reader for KV-match file version.
  *
  * @author Ningting Pan
  */
