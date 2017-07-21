@@ -7,6 +7,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.Pair;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,8 @@ public class IndexFileWriter implements Closeable {
 
     private File file;
     private BufferedOutputStream writer;
+    long offset;
+    List<Long> offsets = new ArrayList<>(); //last line
 
     public IndexFileWriter(String targetFilePath) throws FileNotFoundException {
         this.file = new File(targetFilePath);
@@ -27,13 +30,18 @@ public class IndexFileWriter implements Closeable {
     }
 
     public void writeIndexes(Map<Double, List<IndexNode>> indexes) {
-        int startOffset = 0;
+        long startOffset = 0;
+        offset = startOffset;
         for (Map.Entry<Double, List<IndexNode>> entry : indexes.entrySet()) {
-            Double key = entry.getKey();
+            offsets.add(offset);
+            double key = entry.getKey();
             List<IndexNode> indexNodes = entry.getValue();
             byte[] keyBytes = ByteUtils.doubleToByteArray(key);
             byte[] indexNodesBytes = ByteUtils.listIndexNodeToByteArray(indexNodes);
-            writeALineBytesToFile(keyBytes, indexNodesBytes);
+            byte[] oneLineBytes = ByteUtils.combineTwoByteArrays(keyBytes, indexNodesBytes);
+            // write result and record offset
+            writeALineBytesToFile(oneLineBytes);
+            offset += keyBytes.length + indexNodesBytes.length;
         }
     }
 
@@ -42,6 +50,7 @@ public class IndexFileWriter implements Closeable {
     }
 
     public void writeStatisticInfo(List<Pair<Double, Pair<Integer, Integer>>> statisticInfo) {
+        offsets.add(offset);
         // store statistic information for query order optimization
         statisticInfo.sort(Comparator.comparing(Pair::getFirst));
         byte[] result = new byte[(Bytes.SIZEOF_DOUBLE + 2 * Bytes.SIZEOF_INT) * statisticInfo.size()];
@@ -56,6 +65,16 @@ public class IndexFileWriter implements Closeable {
             System.arraycopy(Bytes.toBytes(statisticInfo.get(i).getSecond().getSecond()), 0, result, i * (Bytes.SIZEOF_DOUBLE + 2 * Bytes.SIZEOF_INT) + Bytes.SIZEOF_DOUBLE + Bytes.SIZEOF_INT, Bytes.SIZEOF_INT);
         }
         // write result and record offset
+        writeALineBytesToFile(result);
+        offset += result.length;
+        // write file offset information to the end of file
+        writeOffsetInfo();
+    }
+
+    private void writeOffsetInfo() {
+        offsets.add(offset);
+        byte[] offsetBytes = ByteUtils.listLongToByteArray(offsets);
+        writeALineBytesToFile(offsetBytes);
     }
 
     @Override
@@ -63,14 +82,15 @@ public class IndexFileWriter implements Closeable {
         // write last file index
     }
 
-    private void writeALineBytesToFile(byte[] keyBytes, byte[] indexNodesBytes) {
+    private void writeALineBytesToFile(byte[] bytes) {
         try {
-            FileInputStream fis = new FileInputStream(file);
-            BufferedOutputStream writer = new BufferedOutputStream(new FileOutputStream(file));
-
-            // maintain index row offset in the process
-
+            BufferedOutputStream writer = new BufferedOutputStream(new FileOutputStream(file, true));
+            writer.write(bytes, 0, bytes.length);
+            writer.flush();
+            writer.close();
         } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
