@@ -1,7 +1,7 @@
 package cn.edu.fudan.dsm.kvmatch.tsfiledb.io;
 
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.IndexNode;
-import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.Pair;
+import cn.edu.thu.tsfile.common.utils.Pair;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,6 +15,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Test {
 
     public static void main(String[] args) throws IOException {
+        // test on windows
         String indexPath = "C:\\Users\\dell\\Desktop\\BDMS\\KV-match-TsFileDB\\KV-match_TsFileDB\\index";
 
         IndexFileWriter indexFileWriter = new IndexFileWriter(indexPath);
@@ -50,7 +51,7 @@ public class Test {
             System.out.println("key: "+entry.getKey()+"  value:"+entry.getValue().toString());
         }
         for (Pair<Double, Pair<Integer, Integer>> pair : pairList) {
-            System.out.println(pair.getFirst()+":  "+pair.getSecond().getFirst()+";  "+pair.getSecond().getSecond());
+            System.out.println(pair.left+":  "+pair.right.left+";  "+pair.right.right);
         }
         indexFileReader.close();
     }
