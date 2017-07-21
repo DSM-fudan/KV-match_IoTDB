@@ -13,8 +13,8 @@ public class ByteUtils {
     public static byte[] listLongToByteArray(List<Long> offsets) {
         byte[] bytes = new byte[Bytes.SIZEOF_LONG * offsets.size()];
         int curOffset = 0;
-        for (int i=0; i<offsets.size(); i++) {
-            System.arraycopy(Bytes.toBytes(offsets.get(i)), 0, bytes, curOffset, Bytes.SIZEOF_LONG);
+        for (Long offset : offsets) {
+            System.arraycopy(Bytes.toBytes(offset), 0, bytes, curOffset, Bytes.SIZEOF_LONG);
             curOffset += Bytes.SIZEOF_LONG;
         }
         return bytes;
@@ -39,5 +39,4 @@ public class ByteUtils {
         System.arraycopy(secondBytes, 0, combineBytes, firstBytes.length, secondBytes.length);
         return combineBytes;
     }
-
 }

@@ -10,28 +10,27 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Index file writer for KV-match file version
+ * Index file writer for KV-match file version.
  *
  * @author Ningting Pan
  */
 public class IndexFileWriter implements Closeable {
 
-    private File file;
     private BufferedOutputStream writer;
-    long offset;
-    List<Long> offsets = new ArrayList<>(); //last line
+    private long offset;
+    private List<Long> offsets = new ArrayList<>();  // last line
 
     public IndexFileWriter(String targetFilePath) throws IOException {
-        this.file = new File(targetFilePath);
+        File file = new File(targetFilePath);
         if (!file.getParentFile().exists()) {
             if (!file.getParentFile().mkdirs()) {
                 throw new IOException("Can not create directory " + file.getParent());
             }
         }
-        this.writer = new BufferedOutputStream(new FileOutputStream(file, true));
+        this.writer = new BufferedOutputStream(new FileOutputStream(file));
     }
 
-    public void writeIndexes(Map<Double, IndexNode> indexes) {
+    public void writeIndexes(Map<Double, IndexNode> indexes) throws IOException {
         // sort index map by key
         TreeMap<Double, IndexNode> sortedIndexes = new TreeMap<>(indexes);
         for (Map.Entry<Double, IndexNode> entry : sortedIndexes.entrySet()) {
@@ -39,17 +38,17 @@ public class IndexFileWriter implements Closeable {
         }
     }
 
-    public void writeIndex(double key, IndexNode value) {
+    public void writeIndex(double key, IndexNode value) throws IOException {
         offsets.add(offset);
         byte[] keyBytes = Bytes.toBytes(key);
         byte[] valueBytes = value.toBytesCompact();
         byte[] oneLineBytes = ByteUtils.combineTwoByteArrays(keyBytes, valueBytes);
         // write result and record offset
-        writeALineBytesToFile(oneLineBytes);
+        writeBytesToFile(oneLineBytes);
         offset += keyBytes.length + valueBytes.length;
     }
 
-    public void writeStatisticInfo(List<Pair<Double, Pair<Integer, Integer>>> statisticInfo) {
+    public void writeStatisticInfo(List<Pair<Double, Pair<Integer, Integer>>> statisticInfo) throws IOException {
         offsets.add(offset);
         // store statistic information for query order optimization
         statisticInfo.sort(Comparator.comparing(Pair::getFirst));
@@ -65,32 +64,24 @@ public class IndexFileWriter implements Closeable {
             System.arraycopy(Bytes.toBytes(statisticInfo.get(i).getSecond().getSecond()), 0, result, i * (Bytes.SIZEOF_DOUBLE + 2 * Bytes.SIZEOF_INT) + Bytes.SIZEOF_DOUBLE + Bytes.SIZEOF_INT, Bytes.SIZEOF_INT);
         }
         // write result and record offset
-        writeALineBytesToFile(result);
+        writeBytesToFile(result);
         offset += result.length;
-    }
-
-    private void writeOffsetInfo() {
-        offsets.add(offset);
-        byte[] offsetBytes = ByteUtils.listLongToByteArray(offsets);
-        writeALineBytesToFile(offsetBytes);
     }
 
     @Override
     public void close() throws IOException {
         // write file offset information to the end of file
         writeOffsetInfo();
+        writer.close();
     }
 
-    private void writeALineBytesToFile(byte[] bytes) {
-        try {
-            BufferedOutputStream writer = new BufferedOutputStream(new FileOutputStream(file, true));
-            writer.write(bytes, 0, bytes.length);
-            writer.flush();
-            writer.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private void writeOffsetInfo() throws IOException {
+        offsets.add(offset);
+        writeBytesToFile(ByteUtils.listLongToByteArray(offsets));
+    }
+
+    private void writeBytesToFile(byte[] bytes) throws IOException {
+        writer.write(bytes, 0, bytes.length);
+        writer.flush();
     }
 }
