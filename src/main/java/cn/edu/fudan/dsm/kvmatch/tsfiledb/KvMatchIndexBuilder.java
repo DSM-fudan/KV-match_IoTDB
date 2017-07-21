@@ -1,6 +1,7 @@
 package cn.edu.fudan.dsm.kvmatch.tsfiledb;
 
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.entity.IndexNode;
+import cn.edu.fudan.dsm.kvmatch.tsfiledb.io.IndexFileWriter;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.statistic.StatisticInfo;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.MeanIntervalUtils;
 import cn.edu.thu.tsfile.timeseries.read.qp.Path;
@@ -11,6 +12,7 @@ import org.apache.hadoop.hbase.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.util.*;
 
 /**
@@ -28,11 +30,11 @@ public class KvMatchIndexBuilder {
         this.columnPath = columnPath;
     }
 
-    public boolean build(QueryDataSet dataSet, String targetFilePath) {
+    public boolean build(QueryDataSet dataSet, String targetFilePath) throws FileNotFoundException {
         // Step 1: scan data set and extract window features
         Double lastMeanRound = null;
         IndexNode indexNode = null;
-        Map<Double, IndexNode> indexNodeMap = new TreeMap<>();
+        Map<Double, IndexNode> indexNodeMap = new HashMap<>();
         long lastTime = 0;
         double lastValue = 0;
         double ex = 0;
@@ -99,7 +101,7 @@ public class KvMatchIndexBuilder {
         logger.info("number of disjoint window intervals: average: {}, minimum: {}, maximum: {}", average.getAverage(), average.getMinimum(), average.getMaximum());
 
         // merge adjacent index nodes satisfied criterion, and store to index file
-        List<Put> puts = new ArrayList<>(indexNodeMap.size());
+        IndexFileWriter indexFileWriter = new IndexFileWriter(targetFilePath);
         List<Pair<Double, Pair<Integer, Integer>>> statisticInfo = new ArrayList<>(indexNodeMap.size());
         IndexNode last = indexNodeMap.get(rawStatisticInfo.get(0).getFirst());
         for (int i = 1; i < rawStatisticInfo.size(); i++) {
@@ -108,44 +110,26 @@ public class KvMatchIndexBuilder {
             if (rawStatisticInfo.get(i).getSecond().getFirst() < average.getAverage() * 1.2) {
                 IndexNode merged = mergeIndexNode(last, current);
                 if (merged.getPositions().size() < (last.getPositions().size() + current.getPositions().size()) * 0.8) {
-                    logger.info("[MERGE] {} - last: {}, current: {}, merged: {}", rawStatisticInfo.get(i-1).getFirst(), last.getPositions().size(), current.getPositions().size(), merged.getPositions().size());
+                    logger.debug("[MERGE] {} - last: {}, current: {}, merged: {}", rawStatisticInfo.get(i-1).getFirst(), last.getPositions().size(), current.getPositions().size(), merged.getPositions().size());
                     last = merged;
                     isMerged = true;
                 }
             }
             if (!isMerged) {
-                Put put = new Put(MeanIntervalUtils.toBytes(rawStatisticInfo.get(i-1).getFirst()));
-                put.addColumn(Bytes.toBytes("std"), Bytes.toBytes("p"), last.toBytesCompact());
-                puts.add(put);
-                long sum = 0;
-                for (Pair<Long, Long> pair : last.getPositions()) {
-                    sum += pair.getSecond() - pair.getFirst() + 1;
-                }
-                statisticInfo.add(new Pair<>(rawStatisticInfo.get(i-1).getFirst(), new Pair<>(last.getPositions().size(), (int) sum)));
-
+                double key = rawStatisticInfo.get(i-1).getFirst();
+                indexFileWriter.writeIndex(key, last);
+                statisticInfo.add(new Pair<>(key, last.getStatisticInfoPair()));
                 last = current;
             }
         }
         // store the last row to index file
-        Put put = new Put(MeanIntervalUtils.toBytes(rawStatisticInfo.get(rawStatisticInfo.size()-1).getFirst()));
-        put.addColumn(Bytes.toBytes("std"), Bytes.toBytes("p"), last.toBytesCompact());
-        puts.add(put);
-        long sum = 0;
-        for (Pair<Long, Long> pair : last.getPositions()) {
-            sum += pair.getSecond() - pair.getFirst() + 1;
-        }
-        statisticInfo.add(new Pair<>(rawStatisticInfo.get(rawStatisticInfo.size()-1).getFirst(), new Pair<>(last.getPositions().size(), (int) sum)));
-
-        indexOperator.putList(puts);
-
-
-        put = new Put(Bytes.toBytes("statistic"));
-        put.addColumn(Bytes.toBytes("std"), Bytes.toBytes("p"), result);
-        indexOperator.put(put);
+        double key = rawStatisticInfo.get(rawStatisticInfo.size()-1).getFirst();
+        indexFileWriter.writeIndex(key, last);
+        statisticInfo.add(new Pair<>(key, last.getStatisticInfoPair()));
 
         // Step 3: store to disk
-
-        return false;
+        indexFileWriter.writeStatisticInfo(statisticInfo);
+        return true;
     }
 
     private static IndexNode mergeIndexNode(IndexNode node1, IndexNode node2) {

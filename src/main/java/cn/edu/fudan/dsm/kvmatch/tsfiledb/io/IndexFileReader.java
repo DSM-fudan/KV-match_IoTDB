@@ -18,8 +18,8 @@ public class IndexFileReader implements Closeable {
     private File file;
     private BufferedInputStream reader;
 
-    public IndexFileReader(File file) throws FileNotFoundException {
-        this.file = file;
+    public IndexFileReader(String indexFilePath) throws FileNotFoundException {
+        this.file = new File(indexFilePath);
         this.reader = new BufferedInputStream(new FileInputStream(file));
     }
 

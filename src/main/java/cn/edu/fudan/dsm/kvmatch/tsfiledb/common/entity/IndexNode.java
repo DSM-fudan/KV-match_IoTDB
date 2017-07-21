@@ -131,12 +131,16 @@ public class IndexNode {
         return positions.size();
     }
 
-    public long getNumOfOffsets() {
-        long sum = 0;
+    public int getNumOfOffsets() {
+        int sum = 0;
         for (Pair<Long, Long> pair : positions) {
             sum += pair.getSecond() - pair.getFirst() + 1;
         }
         return sum;
+    }
+
+    public Pair<Integer, Integer> getStatisticInfoPair() {
+        return new Pair<>(getNumOfIntervals(), getNumOfOffsets());
     }
 
     public static void main(String args[]) {

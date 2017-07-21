@@ -21,8 +21,8 @@ public class IndexFileWriter implements Closeable {
     private File file;
     private BufferedOutputStream writer;
 
-    public IndexFileWriter(File file) throws FileNotFoundException {
-        this.file = file;
+    public IndexFileWriter(String targetFilePath) throws FileNotFoundException {
+        this.file = new File(targetFilePath);
         this.writer = new BufferedOutputStream(new FileOutputStream(file));
     }
 
