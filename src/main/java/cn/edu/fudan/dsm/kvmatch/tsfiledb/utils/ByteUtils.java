@@ -1,9 +1,6 @@
 package cn.edu.fudan.dsm.kvmatch.tsfiledb.utils;
 
-import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.IndexNode;
-import org.apache.hadoop.hbase.util.Bytes;
-
-import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,22 +10,27 @@ import java.util.List;
  */
 public class ByteUtils {
 
-    public static byte[] doubleToByteArray(double value) {
-        byte[] bytes = new byte[Bytes.SIZEOF_DOUBLE];
-        ByteBuffer.wrap(bytes).putDouble(value);
+    public static byte[] listLongToByteArray(List<Long> offsets) {
+        byte[] bytes = new byte[Bytes.SIZEOF_LONG * offsets.size()];
+        int curOffset = 0;
+        for (int i=0; i<offsets.size(); i++) {
+            System.arraycopy(Bytes.toBytes(offsets.get(i)), 0, bytes, curOffset, Bytes.SIZEOF_LONG);
+            curOffset += Bytes.SIZEOF_LONG;
+        }
         return bytes;
     }
 
-    public static double byteArrayToDouble(byte[] bytes) {
-        return ByteBuffer.wrap(bytes).getDouble();
-    }
-
-    public static byte[] listIndexNodeToByteArray(List<IndexNode> indexNodes) {
-        return null;
-    }
-
-    public static byte[] listLongToByteArray(List<Long> offsets) {
-        return null;
+    public static List<Long> byteArrayToListLong(byte[] bytes) {
+        List<Long> offsets = new ArrayList<>();
+        int size = bytes.length / Bytes.SIZEOF_LONG;
+        int curOffset = 0;
+        for (int i=0; i<size; i++) {
+            byte[] tmp = new byte[Bytes.SIZEOF_LONG];
+            System.arraycopy(bytes, curOffset, tmp, 0, Bytes.SIZEOF_LONG);
+            offsets.add(Bytes.toLong(tmp));
+            curOffset += Bytes.SIZEOF_LONG;
+        }
+        return offsets;
     }
 
     public static byte[] combineTwoByteArrays(byte[] firstBytes, byte[] secondBytes) {
@@ -37,4 +39,5 @@ public class ByteUtils {
         System.arraycopy(secondBytes, 0, combineBytes, firstBytes.length, secondBytes.length);
         return combineBytes;
     }
+
 }

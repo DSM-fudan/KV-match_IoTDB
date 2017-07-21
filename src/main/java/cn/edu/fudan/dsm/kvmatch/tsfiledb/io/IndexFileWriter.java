@@ -7,10 +7,7 @@ import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.Bytes;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.MeanIntervalUtils;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Index file writer for KV-match file version
@@ -26,27 +23,26 @@ public class IndexFileWriter implements Closeable {
 
     public IndexFileWriter(String targetFilePath) throws FileNotFoundException {
         this.file = new File(targetFilePath);
-        this.writer = new BufferedOutputStream(new FileOutputStream(file));
+        this.writer = new BufferedOutputStream(new FileOutputStream(file, true));
+        offset = 0;
     }
 
-    public void writeIndexes(Map<Double, List<IndexNode>> indexes) {
-        long startOffset = 0;
-        offset = startOffset;
-        for (Map.Entry<Double, List<IndexNode>> entry : indexes.entrySet()) {
-            offsets.add(offset);
-            double key = entry.getKey();
-            List<IndexNode> indexNodes = entry.getValue();
-            byte[] keyBytes = ByteUtils.doubleToByteArray(key);
-            byte[] indexNodesBytes = ByteUtils.listIndexNodeToByteArray(indexNodes);
-            byte[] oneLineBytes = ByteUtils.combineTwoByteArrays(keyBytes, indexNodesBytes);
-            // write result and record offset
-            writeALineBytesToFile(oneLineBytes);
-            offset += keyBytes.length + indexNodesBytes.length;
+    public void writeIndexes(Map<Double, IndexNode> indexes) {
+        // sort index map by key
+        TreeMap<Double, IndexNode> sortedIndexes = new TreeMap<>(indexes);
+        for (Map.Entry<Double, IndexNode> entry : sortedIndexes.entrySet()) {
+            writeIndex(entry.getKey(), entry.getValue());
         }
     }
 
     public void writeIndex(double key, IndexNode value) {
-
+        offsets.add(offset);
+        byte[] keyBytes = Bytes.toBytes(key);
+        byte[] valueBytes = value.toBytesCompact();
+        byte[] oneLineBytes = ByteUtils.combineTwoByteArrays(keyBytes, valueBytes);
+        // write result and record offset
+        writeALineBytesToFile(oneLineBytes);
+        offset += keyBytes.length + valueBytes.length;
     }
 
     public void writeStatisticInfo(List<Pair<Double, Pair<Integer, Integer>>> statisticInfo) {
@@ -67,8 +63,6 @@ public class IndexFileWriter implements Closeable {
         // write result and record offset
         writeALineBytesToFile(result);
         offset += result.length;
-        // write file offset information to the end of file
-        writeOffsetInfo();
     }
 
     private void writeOffsetInfo() {
@@ -79,7 +73,8 @@ public class IndexFileWriter implements Closeable {
 
     @Override
     public void close() throws IOException {
-        // write last file index
+        // write file offset information to the end of file
+        writeOffsetInfo();
     }
 
     private void writeALineBytesToFile(byte[] bytes) {
