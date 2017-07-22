@@ -81,7 +81,7 @@ public class IndexFileReader implements Closeable {
                 left = mid + 1;
             }
         }
-        if (left < offsets.size() - 3) return left;
+        if (left <= offsets.size() - 3) return left;
         return -1;
     }
 
