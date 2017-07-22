@@ -2,6 +2,7 @@ package cn.edu.fudan.dsm.kvmatch.tsfiledb;
 
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.*;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.io.IndexFileReader;
+import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.IntervalUtils;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.MeanIntervalUtils;
 import cn.edu.thu.tsfile.common.utils.Pair;
 import cn.edu.thu.tsfile.timeseries.read.qp.Path;
@@ -51,6 +52,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
         logger.info("Querying index for {}: {}", columnPath, indexFilePath);
         try (IndexFileReader reader = new IndexFileReader(indexFilePath)) {
             statisticInfo = reader.readStatisticInfo();
+            indexCache = new ArrayList<>();
 
             List<QuerySegment> queries = determineQueryPlan();
             logger.info("Query order: {}", queries);
@@ -91,15 +93,15 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
                          * Cache  : index_l_l|_____|index_l_r
                          * Future : index_l_l|_____|index_l_r
                          */
-                        scanCache(index_l, beginRound, true, endRound, true, query, positions);
+                        scanCache(index_l, beginRound, true, endRound, true, positions);
                     } else if (index_l < 0 && index_r >= 0) {
                         /*
                          * Current:         l|_==|r
                          * Cache  :   index_r_l|_____|index_r_r
                          * Future : index_r_l|_______|index_r_r
                          */
-                        scanCache(index_r, indexCache.get(index_r).getBeginRound(), true, endRound, true, query, positions);
-                        scanIndexAndAddCache(reader, beginRound, true, indexCache.get(index_r).getBeginRound(), false, index_r, query, positions);
+                        scanCache(index_r, indexCache.get(index_r).getBeginRound(), true, endRound, true, positions);
+                        scanIndexAndAddCache(reader, beginRound, true, indexCache.get(index_r).getBeginRound(), false, index_r, positions);
                         indexCache.get(index_r).setBeginRound(beginRound);
                     } else if (index_l >= 0 && index_r < 0) {
                         /*
@@ -107,8 +109,8 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
                          * Cache  : index_l_l|_____|index_l_r
                          * Future : index_l_l|_______|index_l_r
                          */
-                        scanCache(index_l, beginRound, true, indexCache.get(index_l).getEndRound(), true, query, positions);
-                        scanIndexAndAddCache(reader, indexCache.get(index_l).getEndRound(), false, endRound, true, index_l, query, positions);
+                        scanCache(index_l, beginRound, true, indexCache.get(index_l).getEndRound(), true, positions);
+                        scanIndexAndAddCache(reader, indexCache.get(index_l).getEndRound(), false, endRound, true, index_l, positions);
                         indexCache.get(index_l).setEndRound(endRound);
                     } else if (index_l == index_r && index_l < 0) {
                         /*
@@ -116,7 +118,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
                          * Cache  : |_____|       |_____|
                          * Future : |_____|l|___|r|_____|
                          */
-                        scanIndexAndAddCache(reader, beginRound, true, endRound, true, index_r, query, positions);  // insert a new cache node
+                        scanIndexAndAddCache(reader, beginRound, true, endRound, true, index_r, positions);  // insert a new cache node
                     } else if (index_l >= 0 && index_r >= 0 && index_l + 1 == index_r) {
                         /*
                           Current:     l|=___=|r
@@ -124,15 +126,15 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
                           Future : |_______________|
                          */
                         double s = indexCache.get(index_l).getEndRound();
-                        scanCache(index_l, beginRound, true, s, true, query, positions);
-                        scanIndexAndAddCache(reader, s, false, indexCache.get(index_r).getBeginRound(), false, index_r, query, positions);
-                        scanCache(index_r, indexCache.get(index_r).getBeginRound(), true, endRound, true, query, positions);
+                        scanCache(index_l, beginRound, true, s, true, positions);
+                        scanIndexAndAddCache(reader, s, false, indexCache.get(index_r).getBeginRound(), false, index_r, positions);
+                        scanCache(index_r, indexCache.get(index_r).getBeginRound(), true, endRound, true, positions);
                         indexCache.get(index_r).setBeginRound(s + 0.01);
                     }
                 } else {
-                    scanIndex(reader, beginRound, true, endRound, true, query, positions);
+                    scanIndex(reader, beginRound, true, endRound, true, positions);
                 }
-                positions = sortButNotMergeIntervals(positions);
+                positions = IntervalUtils.sortButNotMergeIntervals(positions);
 
                 if (i == 0) {
                     for (Interval position : positions) {
@@ -171,7 +173,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
                     }
                 }
 
-                Pair<List<Interval>, Pair<Integer, Long>> candidates = sortButNotMergeIntervalsAndCount(nextValidPositions);
+                Pair<List<Interval>, Pair<Integer, Long>> candidates = IntervalUtils.sortButNotMergeIntervalsAndCount(nextValidPositions);
                 validPositions = candidates.left;
 //                logger.info("next valid: {}", validPositions.toString());
 
@@ -192,16 +194,18 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
             }
 
             // merge consecutive intervals to shrink data size and alleviate scan times
-            validPositions = sortAndMergeIntervals(validPositions);
+            validPositions = IntervalUtils.sortAndMergeIntervals(validPositions);
 
+            // shift candidate ranges to actual timestamps
+            List<Pair<Long, Long>> candidateRanges = new ArrayList<>(validPositions.size());
             for (Interval validPosition : validPositions) {
                 long begin = (validPosition.getLeft() - (lastSegment - 1) - 1) * windowLength + 1 - windowLength + 1;
                 long end = (validPosition.getRight() - (lastSegment - 1) - 1) * windowLength + 1 + lenQ - 1;
                 if (begin < 1) begin = 1;
+                candidateRanges.add(new Pair<>(begin, end));
             }
+            return new QueryResult(candidateRanges);
         }
-
-        return new QueryResult();
     }
 
     private Pair<Integer, Integer> getCountsFromStatisticInfo(int Wu, double meanMin, double meanMax) {
@@ -268,7 +272,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
         return queries;
     }
 
-    private void scanIndex(IndexFileReader reader, double begin, boolean beginInclusive, double end, boolean endInclusive, QuerySegment query, List<Interval> positions) throws IOException {
+    private void scanIndex(IndexFileReader reader, double begin, boolean beginInclusive, double end, boolean endInclusive, List<Interval> positions) throws IOException {
         if (!beginInclusive) begin = begin + 0.01;
         if (endInclusive) end = end + 0.01;
 
@@ -281,7 +285,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
         }
     }
 
-    private void scanIndexAndAddCache(IndexFileReader reader, double begin, boolean beginInclusive, double end, boolean endInclusive, int index, QuerySegment query, List<Interval> positions) throws IOException {
+    private void scanIndexAndAddCache(IndexFileReader reader, double begin, boolean beginInclusive, double end, boolean endInclusive, int index, List<Interval> positions) throws IOException {
         if (index < 0) {
             index = -index - 1;
             indexCache.add(index, new IndexCache(begin, end));
@@ -300,7 +304,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
         }
     }
 
-    private void scanCache(int index, double begin, boolean beginInclusive, double end, boolean endInclusive, QuerySegment query, List<Interval> positions) {
+    private void scanCache(int index, double begin, boolean beginInclusive, double end, boolean endInclusive, List<Interval> positions) {
         for (Map.Entry<Double, IndexNode> entry : indexCache.get(index).getCaches().subMap(begin, beginInclusive, end, endInclusive).entrySet()) {
             double meanRound = entry.getKey();
             IndexNode indexNode = entry.getValue();
@@ -331,116 +335,5 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
         }
 
         return -1;
-    }
-
-    private List<Interval> sortButNotMergeIntervals(List<Interval> intervals) {
-        if (intervals.size() <= 1) {
-            return intervals;
-        }
-
-        intervals.sort(Comparator.comparingLong(Interval::getLeft));
-
-        Interval first = intervals.get(0);
-        long start = first.getLeft();
-        long end = first.getRight();
-        double ex = first.getEx();
-        double ex2 = first.getEx2();
-
-        List<Interval> result = new ArrayList<>();
-
-        for (int i = 1; i < intervals.size(); i++) {
-            Interval current = intervals.get(i);
-            if (current.getLeft() - 1 < end || (current.getLeft() - 1 == end && Double.compare(current.getEx(), ex) == 0 && Double.compare(current.getEx2(), ex2) == 0)) {
-                end = Math.max(current.getRight(), end);
-                ex = Math.min(current.getEx(), ex);
-                ex2 = Math.min(current.getEx2(), ex2);
-            } else {
-                result.add(new Interval(start, end, ex, ex2));
-                start = current.getLeft();
-                end = current.getRight();
-                ex = current.getEx();
-                ex2 = current.getEx2();
-            }
-        }
-        result.add(new Interval(start, end, ex, ex2));
-
-        return result;
-    }
-
-    private Pair<List<Interval>, Pair<Integer, Long>> sortButNotMergeIntervalsAndCount(List<Interval> intervals) {
-        if (intervals.size() <= 1) {
-            return new Pair<>(intervals, new Pair<>(intervals.size(), intervals.isEmpty() ? 0 : (intervals.get(0).getRight() - intervals.get(0).getLeft() + 1)));
-        }
-
-        intervals.sort(Comparator.comparingLong(Interval::getLeft));
-
-        Interval first = intervals.get(0);
-        long start = first.getLeft();
-        long end = first.getRight();
-        double ex = first.getEx();
-        double ex2 = first.getEx2();
-
-        List<Interval> result = new ArrayList<>();
-
-        int cntDisjointIntervals = intervals.size();
-        long cntOffsets = 0;
-        for (int i = 1; i < intervals.size(); i++) {
-            Interval current = intervals.get(i);
-
-            if (current.getLeft() - 1 <= end) {  // count for disjoint intervals to estimate time usage of step 2
-                cntDisjointIntervals--;
-            }
-
-            if (current.getLeft() - 1 < end || (current.getLeft() - 1 == end && Double.compare(current.getEx(), ex) == 0 && Double.compare(current.getEx2(), ex2) == 0)) {
-                end = Math.max(current.getRight(), end);
-                ex = Math.min(current.getEx(), ex);
-                ex2 = Math.min(current.getEx2(), ex2);
-            } else {
-                result.add(new Interval(start, end, ex, ex2));
-                cntOffsets += end - start + 1;
-                start = current.getLeft();
-                end = current.getRight();
-                ex = current.getEx();
-                ex2 = current.getEx2();
-            }
-        }
-        result.add(new Interval(start, end, ex, ex2));
-        cntOffsets += end - start + 1;
-
-        return new Pair<>(result, new Pair<>(cntDisjointIntervals, cntOffsets));
-    }
-
-    private List<Interval> sortAndMergeIntervals(List<Interval> intervals) {
-        if (intervals.size() <= 1) {
-            return intervals;
-        }
-
-        intervals.sort(Comparator.comparingLong(Interval::getLeft));
-
-        Interval first = intervals.get(0);
-        long start = first.getLeft();
-        long end = first.getRight();
-        double ex = first.getEx();
-        double ex2 = first.getEx2();
-
-        List<Interval> result = new ArrayList<>();
-
-        for (int i = 1; i < intervals.size(); i++) {
-            Interval current = intervals.get(i);
-            if (current.getLeft() - 1 <= end) {
-                end = Math.max(current.getRight(), end);
-                ex = Math.min(current.getEx(), ex);
-                ex2 = Math.min(current.getEx2(), ex2);
-            } else {
-                result.add(new Interval(start, end, ex, ex2));
-                start = current.getLeft();
-                end = current.getRight();
-                ex = current.getEx();
-                ex2 = current.getEx2();
-            }
-        }
-        result.add(new Interval(start, end, ex, ex2));
-
-        return result;
     }
 }
