@@ -55,7 +55,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
             indexCache = new ArrayList<>();
 
             List<QuerySegment> queries = determineQueryPlan();
-            logger.info("Query order: {}", queries);
+            logger.debug("Query order: {}", queries);
 
             List<Interval> validPositions = new ArrayList<>();
             int lastSegment = queries.get(queries.size() - 1).getOrder();
@@ -64,7 +64,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
             for (int i = 0; i < queries.size(); i++) {
                 QuerySegment query = queries.get(i);
 
-                logger.info("Window #{} - {} - meanMin:{} - meanMax:{}", i + 1, query.getOrder(), query.getMeanMin(), query.getMeanMax());
+                logger.debug("Window #{} - {} - meanMin:{} - meanMax:{}", i + 1, query.getOrder(), query.getMeanMin(), query.getMeanMax());
 
                 int deltaW = (i == queries.size() - 1) ? 0 : (queries.get(i + 1).getOrder() - query.getOrder());// * WuList[0];
 
@@ -82,7 +82,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
                 double endRound1 = 1.0/alpha * query.getMeanMax() + (1 - 1.0/alpha) * meanQ + beta + Math.sqrt(1.0/(alpha*alpha) * stdQ*stdQ * epsilon*epsilon / query.getWindowLength());
                 endRound = MeanIntervalUtils.toRound(Math.max(endRound, endRound1));
 
-                logger.info("Scan index from {} to {}", beginRound, endRound);
+                logger.debug("Scan index from {} to {}", beginRound, endRound);
                 if (queryConfig.isUseCache()) {
                     int index_l = findCache(beginRound);
                     int index_r = findCache(endRound, index_l);
@@ -175,16 +175,16 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
 
                 Pair<List<Interval>, Pair<Integer, Long>> candidates = IntervalUtils.sortButNotMergeIntervalsAndCount(nextValidPositions);
                 validPositions = candidates.left;
-//                logger.info("next valid: {}", validPositions.toString());
+//                logger.debug("next valid: {}", validPositions.toString());
 
                 int cntCurrentDisjointCandidateWindows = candidates.right.left;
                 long cntCurrentCandidateOffsets = candidates.right.right * windowLength;
-                logger.info("Disjoint candidate windows: {}, candidate offsets: {}", cntCurrentDisjointCandidateWindows, cntCurrentCandidateOffsets);
+                logger.debug("Disjoint candidate windows: {}, candidate offsets: {}", cntCurrentDisjointCandidateWindows, cntCurrentCandidateOffsets);
 
                 int step1TimeUsageUntilNow = (int) (System.currentTimeMillis() - startTime);
                 double step2TimeUsageEstimated = QueryConfig.STEP_2_TIME_ESTIMATE_COEFFICIENT_A * cntCurrentDisjointCandidateWindows + QueryConfig.STEP_2_TIME_ESTIMATE_COEFFICIENT_B * cntCurrentCandidateOffsets / 100000 * lenQ + QueryConfig.STEP_2_TIME_ESTIMATE_INTERCEPT;
                 double totalTimeUsageEstimated = step1TimeUsageUntilNow + step2TimeUsageEstimated;
-                logger.info("Time usage: step 1 until now: {}, step 2 estimated: {}, total estimated: {}", step1TimeUsageUntilNow, step2TimeUsageEstimated, totalTimeUsageEstimated);
+                logger.debug("Time usage: step 1 until now: {}, step 2 estimated: {}, total estimated: {}", step1TimeUsageUntilNow, step2TimeUsageEstimated, totalTimeUsageEstimated);
 
                 if (i >= 5 && totalTimeUsageEstimated > lastTotalTimeUsageEstimated) {
                     lastSegment = (i == queries.size() - 1) ? query.getOrder() : queries.get(i + 1).getOrder();
