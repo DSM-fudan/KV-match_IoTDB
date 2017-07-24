@@ -60,7 +60,7 @@ public class MeanIntervalUtils {
      * @param round mean interval round
      * @return upper bound
      */
-    public static double toUpper(double round) {
+    private static double toUpper(double round) {
         return round + 0.5;
     }
 
