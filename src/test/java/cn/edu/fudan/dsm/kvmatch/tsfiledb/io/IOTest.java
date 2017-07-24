@@ -3,7 +3,6 @@ package cn.edu.fudan.dsm.kvmatch.tsfiledb.io;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.IndexNode;
 import cn.edu.thu.tsfile.common.utils.Pair;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Jiaye Wu
@@ -60,24 +61,24 @@ public class IOTest {
         // test read
         IndexFileReader indexFileReader = new IndexFileReader(INDEX_PATH);
         Map<Double, IndexNode> indexNodeMap = indexFileReader.readIndexes(0.5, 0.6);
-        Assert.assertEquals(indexNodeMap.size(), 0);
+        assertEquals(indexNodeMap.size(), 0);
         indexNodeMap = indexFileReader.readIndexes(-0.5, 0.0);
-        Assert.assertEquals(indexNodeMap.size(), 0);
+        assertEquals(indexNodeMap.size(), 0);
         indexNodeMap = indexFileReader.readIndexes(-0.5, 10.0);
-        Assert.assertEquals(indexNodeMap.size(), 4);
+        assertEquals(indexNodeMap.size(), 4);
         indexNodeMap = indexFileReader.readIndexes(-0.5, 0.1);
-        Assert.assertEquals(indexNodeMap.size(), 1);
+        assertEquals(indexNodeMap.size(), 1);
         indexNodeMap = indexFileReader.readIndexes(0.4, 10.0);
-        Assert.assertEquals(indexNodeMap.size(), 1);
+        assertEquals(indexNodeMap.size(), 1);
         indexNodeMap = indexFileReader.readIndexes(0.2, 0.35);
-        Assert.assertEquals(indexNodeMap.size(), 2);
+        assertEquals(indexNodeMap.size(), 2);
         for (Map.Entry<Double, IndexNode> entry : indexNodeMap.entrySet()) {
-            Assert.assertEquals(entry.getValue(), indexes.get(entry.getKey()));
+            assertEquals(entry.getValue(), indexes.get(entry.getKey()));
         }
         List<Pair<Double, Pair<Integer, Integer>>> pairList = indexFileReader.readStatisticInfo();
         for (int i = 0; i < pairList.size(); i++) {
             Pair<Double, Pair<Integer, Integer>> pair = pairList.get(i);
-            Assert.assertEquals(pair, statisticInfo.get(i));
+            assertEquals(pair, statisticInfo.get(i));
         }
         indexFileReader.close();
     }

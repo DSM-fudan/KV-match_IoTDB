@@ -22,30 +22,6 @@ public class IndexNode {
         positions = new ArrayList<>(100);
     }
 
-    public static void main(String args[]) {
-        IndexNode node = new IndexNode();
-        for (int i = 0; i < 100; i += 5) {
-            node.getPositions().add(new Pair<>(i + 100000000000L, i + 100000000002L));
-        }
-        for (int i = 0; i < 100; i += 5) {
-            node.getPositions().add(new Pair<>(i + 1000000000000000L, i + 1000000000000002L));
-        }
-        System.out.println("Original:");
-        for (int i = 0; i < node.getPositions().size(); i++) {
-            System.out.println(node.getPositions().get(i).left + ", " + node.getPositions().get(i).right);
-        }
-        byte[] bytes = node.toBytesCompact();
-
-        System.out.println(Arrays.toString(bytes));
-
-        IndexNode node2 = new IndexNode();
-        node2.parseBytesCompact(bytes);
-        System.out.println("Parsed:");
-        for (int i = 0; i < node2.getPositions().size(); i++) {
-            System.out.println(node2.getPositions().get(i).left + ", " + node2.getPositions().get(i).right);
-        }
-    }
-
     public byte[] toBytes() {
         /*
          * {left 1}{right 1}{left 2}{right 2}...{left n}{right n}
