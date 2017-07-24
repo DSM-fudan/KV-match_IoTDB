@@ -139,6 +139,21 @@ public class IndexNode {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        IndexNode indexNode = (IndexNode) o;
+
+        return positions.equals(indexNode.positions);
+    }
+
+    @Override
+    public int hashCode() {
+        return positions.hashCode();
+    }
+
+    @Override
     public String toString() {
         return "IndexNode{" + "positions=" + positions + '}';
     }

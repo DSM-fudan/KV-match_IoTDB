@@ -23,7 +23,7 @@ public class IndexFileWriter implements Closeable {
 
     public IndexFileWriter(String targetFilePath) throws IOException {
         File file = new File(targetFilePath);
-        if (!file.getParentFile().exists()) {
+        if (file.getParentFile() != null && !file.getParentFile().exists()) {
             if (!file.getParentFile().mkdirs()) {
                 throw new IOException("Can not create directory " + file.getParent());
             }
