@@ -7,6 +7,8 @@ package cn.edu.fudan.dsm.kvmatch.tsfiledb.common;
  */
 public class IndexConfig {
 
+    public static final String PARAM_WINDOW_LENGTH = "window_length";
+
     public static final int DEFAULT_WINDOW_LENGTH = 50;
 
     private int windowLength;

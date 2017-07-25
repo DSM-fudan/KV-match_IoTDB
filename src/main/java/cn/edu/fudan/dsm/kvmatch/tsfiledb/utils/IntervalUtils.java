@@ -12,6 +12,13 @@ import java.util.List;
  */
 public class IntervalUtils {
 
+    public static List<Pair<Long, Long>> extendAndMerge(List<Pair<Long, Long>> intervals, int extendLength) {
+        for (Pair<Long, Long> interval : intervals) {
+            interval.right += extendLength - 1;
+        }
+        return mergePair(intervals);
+    }
+
     public static List<Pair<Long, Long>> sortAndUnion(List<Pair<Long, Long>> intervals1, List<Pair<Long, Long>> intervals2) {
         intervals1.sort(Comparator.comparing(o -> o.left));
         intervals2.sort(Comparator.comparing(o -> o.left));
@@ -69,12 +76,10 @@ public class IntervalUtils {
         return ret;
     }
 
-    public static List<Pair<Long, Long>> sortAndMergePair(List<Pair<Long, Long>> intervals) {
+    public static List<Pair<Long, Long>> mergePair(List<Pair<Long, Long>> intervals) {
         if (intervals.size() <= 1) {
             return intervals;
         }
-
-        intervals.sort(Comparator.comparingLong(o -> o.left));
 
         Pair<Long, Long> first = intervals.get(0);
         long start = first.left;
@@ -95,6 +100,11 @@ public class IntervalUtils {
         result.add(new Pair<>(start, end));
 
         return result;
+    }
+
+    public static List<Pair<Long, Long>> sortAndMergePair(List<Pair<Long, Long>> intervals) {
+        intervals.sort(Comparator.comparingLong(o -> o.left));
+        return mergePair(intervals);
     }
 
     public static List<Interval> sortButNotMerge(List<Interval> intervals) {
