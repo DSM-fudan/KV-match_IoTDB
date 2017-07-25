@@ -47,18 +47,18 @@ public class IndexNodeUtilsTest {
         node1.getPositions().add(new Pair<>(450L, 460L));  // 450, 460
 
         IndexNode merged = IndexNodeUtils.mergeIndexNode(node1, node2);
-        assertEquals(merged.getPositions().get(0), new Pair<>(1L, 2L));
-        assertEquals(merged.getPositions().get(1), new Pair<>(4L, 7L));
-        assertEquals(merged.getPositions().get(2), new Pair<>(9L, 16L));
-        assertEquals(merged.getPositions().get(3), new Pair<>(18L, 21L));
-        assertEquals(merged.getPositions().get(4), new Pair<>(23L, 26L));
-        assertEquals(merged.getPositions().get(5), new Pair<>(30L, 31L));
-        assertEquals(merged.getPositions().get(6), new Pair<>(33L, 34L));
-        assertEquals(merged.getPositions().get(7), new Pair<>(36L, 37L));
-        assertEquals(merged.getPositions().get(8), new Pair<>(50L, 305L));
-        assertEquals(merged.getPositions().get(9), new Pair<>(306L, 330L));
-        assertEquals(merged.getPositions().get(10), new Pair<>(390L, 400L));
-        assertEquals(merged.getPositions().get(11), new Pair<>(420L, 430L));
-        assertEquals(merged.getPositions().get(12), new Pair<>(450L, 460L));
+        assertEquals(new Pair<>(1L, 2L), merged.getPositions().get(0));
+        assertEquals(new Pair<>(4L, 7L), merged.getPositions().get(1));
+        assertEquals(new Pair<>(9L, 16L), merged.getPositions().get(2));
+        assertEquals(new Pair<>(18L, 21L), merged.getPositions().get(3));
+        assertEquals(new Pair<>(23L, 26L), merged.getPositions().get(4));
+        assertEquals(new Pair<>(30L, 31L), merged.getPositions().get(5));
+        assertEquals(new Pair<>(33L, 34L), merged.getPositions().get(6));
+        assertEquals(new Pair<>(36L, 37L), merged.getPositions().get(7));
+        assertEquals(new Pair<>(50L, 305L), merged.getPositions().get(8));
+        assertEquals(new Pair<>(306L, 330L), merged.getPositions().get(9));
+        assertEquals(new Pair<>(390L, 400L), merged.getPositions().get(10));
+        assertEquals(new Pair<>(420L, 430L), merged.getPositions().get(11));
+        assertEquals(new Pair<>(450L, 460L), merged.getPositions().get(12));
     }
 }

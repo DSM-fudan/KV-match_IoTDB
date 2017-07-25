@@ -61,17 +61,17 @@ public class IOTest {
         // test read
         IndexFileReader indexFileReader = new IndexFileReader(INDEX_PATH);
         Map<Double, IndexNode> indexNodeMap = indexFileReader.readIndexes(0.5, 0.6);
-        assertEquals(indexNodeMap.size(), 0);
+        assertEquals(0, indexNodeMap.size());
         indexNodeMap = indexFileReader.readIndexes(-0.5, 0.0);
-        assertEquals(indexNodeMap.size(), 0);
+        assertEquals(0, indexNodeMap.size());
         indexNodeMap = indexFileReader.readIndexes(-0.5, 10.0);
-        assertEquals(indexNodeMap.size(), 4);
+        assertEquals(4, indexNodeMap.size());
         indexNodeMap = indexFileReader.readIndexes(-0.5, 0.1);
-        assertEquals(indexNodeMap.size(), 1);
+        assertEquals(1, indexNodeMap.size());
         indexNodeMap = indexFileReader.readIndexes(0.4, 10.0);
-        assertEquals(indexNodeMap.size(), 1);
+        assertEquals(1, indexNodeMap.size());
         indexNodeMap = indexFileReader.readIndexes(0.2, 0.35);
-        assertEquals(indexNodeMap.size(), 2);
+        assertEquals(2, indexNodeMap.size());
         for (Map.Entry<Double, IndexNode> entry : indexNodeMap.entrySet()) {
             assertEquals(entry.getValue(), indexes.get(entry.getKey()));
         }

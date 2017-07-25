@@ -22,7 +22,7 @@ public class IndexNodeTest {
         IndexNode node2 = new IndexNode();
         node2.parseBytesCompact(bytes);
         for (int i = 0; i < node2.getPositions().size(); i++) {
-            assertEquals(node2, node);
+            assertEquals(node, node2);
         }
     }
 }
