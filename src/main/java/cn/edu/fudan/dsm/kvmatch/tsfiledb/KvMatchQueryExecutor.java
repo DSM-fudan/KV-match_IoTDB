@@ -134,7 +134,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
                 } else {
                     scanIndex(reader, beginRound, true, endRound, true, positions);
                 }
-                positions = IntervalUtils.sortButNotMergeIntervals(positions);
+                positions = IntervalUtils.sortButNotMerge(positions);
 
                 if (i == 0) {
                     for (Interval position : positions) {
@@ -173,7 +173,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
                     }
                 }
 
-                Pair<List<Interval>, Pair<Integer, Long>> candidates = IntervalUtils.sortButNotMergeIntervalsAndCount(nextValidPositions);
+                Pair<List<Interval>, Pair<Integer, Long>> candidates = IntervalUtils.sortButNotMergeAndCount(nextValidPositions);
                 validPositions = candidates.left;
 //                logger.debug("next valid: {}", validPositions.toString());
 
@@ -194,7 +194,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
             }
 
             // merge consecutive intervals to shrink data size and alleviate scan times
-            validPositions = IntervalUtils.sortAndMergeIntervals(validPositions);
+            validPositions = IntervalUtils.sortAndMerge(validPositions);
 
             // shift candidate ranges to actual timestamps
             List<Pair<Long, Long>> candidateRanges = new ArrayList<>(validPositions.size());
