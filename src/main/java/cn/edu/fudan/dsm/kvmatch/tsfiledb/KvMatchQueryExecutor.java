@@ -74,13 +74,21 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
                 List<Interval> positions = new ArrayList<>();
 
                 // query possible rows which mean is in possible distance range of i th disjoint window
-                double beginRound = 1.0/alpha * query.getMeanMin() + (1 - 1.0/alpha) * meanQ - beta - Math.sqrt(1.0/(alpha*alpha) * stdQ*stdQ * epsilon*epsilon / query.getWindowLength());
-                double beginRound1 = alpha * query.getMeanMin() + (1 - alpha) * meanQ - beta - Math.sqrt(alpha*alpha * stdQ*stdQ * epsilon*epsilon / query.getWindowLength());
-                beginRound = MeanIntervalUtils.toRound(Math.min(beginRound, beginRound1), statisticInfo);
+                double beginRound, endRound;
+                if (Double.compare(alpha, 1.0) == 0 && Double.compare(beta, 0.0) == 0) {
+                    // without standardization
+                    beginRound = meanQ - epsilon / Math.sqrt(query.getWindowLength());
+                    endRound = meanQ - epsilon / Math.sqrt(query.getWindowLength());
+                } else {
+                    // with standardization
+                    beginRound = 1.0 / alpha * query.getMeanMin() + (1 - 1.0 / alpha) * meanQ - beta - Math.sqrt(1.0 / (alpha * alpha) * stdQ * stdQ * epsilon * epsilon / query.getWindowLength());
+                    double beginRound1 = alpha * query.getMeanMin() + (1 - alpha) * meanQ - beta - Math.sqrt(alpha * alpha * stdQ * stdQ * epsilon * epsilon / query.getWindowLength());
+                    beginRound = MeanIntervalUtils.toRound(Math.min(beginRound, beginRound1), statisticInfo);
 
-                double endRound = alpha * query.getMeanMax() + (1 - alpha) * meanQ + beta + Math.sqrt(alpha*alpha * stdQ*stdQ * epsilon*epsilon / query.getWindowLength());
-                double endRound1 = 1.0/alpha * query.getMeanMax() + (1 - 1.0/alpha) * meanQ + beta + Math.sqrt(1.0/(alpha*alpha) * stdQ*stdQ * epsilon*epsilon / query.getWindowLength());
-                endRound = MeanIntervalUtils.toRound(Math.max(endRound, endRound1));
+                    endRound = alpha * query.getMeanMax() + (1 - alpha) * meanQ + beta + Math.sqrt(alpha * alpha * stdQ * stdQ * epsilon * epsilon / query.getWindowLength());
+                    double endRound1 = 1.0 / alpha * query.getMeanMax() + (1 - 1.0 / alpha) * meanQ + beta + Math.sqrt(1.0 / (alpha * alpha) * stdQ * stdQ * epsilon * epsilon / query.getWindowLength());
+                    endRound = MeanIntervalUtils.toRound(Math.max(endRound, endRound1));
+                }
 
                 logger.debug("Scan index from {} to {}", beginRound, endRound);
                 if (queryConfig.isUseCache()) {
