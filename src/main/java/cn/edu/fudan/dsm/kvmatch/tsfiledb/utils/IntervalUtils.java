@@ -14,7 +14,9 @@ public class IntervalUtils {
 
     public static List<Pair<Long, Long>> extendAndMerge(List<Pair<Long, Long>> intervals, int extendLength) {
         for (Pair<Long, Long> interval : intervals) {
-            interval.right += extendLength - 1;
+            if (interval.right != Long.MAX_VALUE) {
+                interval.right += extendLength - 1;
+            }
         }
         return mergePair(intervals);
     }
