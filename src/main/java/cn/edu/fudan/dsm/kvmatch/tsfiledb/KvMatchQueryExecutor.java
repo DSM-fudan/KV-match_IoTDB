@@ -34,6 +34,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
 
     private int lenQ, windowLength;
     private double epsilon, alpha, beta, meanQ, stdQ;
+    private boolean isStandardization;
 
     public KvMatchQueryExecutor(QueryConfig queryConfig, Path columnPath, String indexFilePath) {
         this.queryConfig = queryConfig;
@@ -45,6 +46,9 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
         beta = queryConfig.getBeta();
         lenQ = queryConfig.getQuerySeries().size();
         windowLength = queryConfig.getWindowLength();
+        if (Double.compare(alpha, 1.0) == 0 && Double.compare(beta, 0.0) == 0) {
+            isStandardization = false;
+        }
     }
 
     @Override
@@ -75,10 +79,10 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
 
                 // query possible rows which mean is in possible distance range of i th disjoint window
                 double beginRound, endRound;
-                if (Double.compare(alpha, 1.0) == 0 && Double.compare(beta, 0.0) == 0) {
+                if (!isStandardization) {
                     // without standardization
-                    beginRound = meanQ - epsilon / Math.sqrt(query.getWindowLength());
-                    endRound = meanQ - epsilon / Math.sqrt(query.getWindowLength());
+                    beginRound = query.getMeanMin() - epsilon / Math.sqrt(query.getWindowLength());
+                    endRound = query.getMeanMax() + epsilon / Math.sqrt(query.getWindowLength());
                 } else {
                     // with standardization
                     beginRound = 1.0 / alpha * query.getMeanMin() + (1 - 1.0 / alpha) * meanQ - beta - Math.sqrt(1.0 / (alpha * alpha) * stdQ * stdQ * epsilon * epsilon / query.getWindowLength());
@@ -158,24 +162,34 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
                         } else {
                             double sumEx = validPositions.get(index1).getEx() + positions.get(index2).getEx();
                             double sumEx2 = validPositions.get(index1).getEx2() + positions.get(index2).getEx2();
-                            double mean = sumEx / (i + 1);  // w_i are identical, so they are omitted to avoid exceeding type limit
-                            double newValue;
-                            double std2 = 0;
-                            if (mean > meanQ + beta) {
-                                newValue = meanQ + beta - (mean - meanQ - beta) * (i + 1) * windowLength / (lenQ - (i + 1) * 1.0 * windowLength);
-                                mean = meanQ + beta;
-                                std2 = (sumEx2 * 1.0 * windowLength + (lenQ - (i + 1) * 1.0 * windowLength) * newValue * newValue) / lenQ - mean * mean;
-                            }
-                            if (validPositions.get(index1).getRight() < positions.get(index2).getRight()) {
-                                if (Double.compare(std2, alpha * alpha * stdQ * stdQ) <= 0) {
+                            if (!isStandardization) {
+                                if (validPositions.get(index1).getRight() < positions.get(index2).getRight()) {
                                     nextValidPositions.add(new Interval(Math.max(validPositions.get(index1).getLeft(), positions.get(index2).getLeft()) + deltaW, validPositions.get(index1).getRight() + deltaW, sumEx, sumEx2));
-                                }
-                                index1++;
-                            } else {
-                                if (Double.compare(std2, alpha * alpha * stdQ * stdQ) <= 0) {
+                                    index1++;
+                                } else {
                                     nextValidPositions.add(new Interval(Math.max(validPositions.get(index1).getLeft(), positions.get(index2).getLeft()) + deltaW, positions.get(index2).getRight() + deltaW, sumEx, sumEx2));
+                                    index2++;
                                 }
-                                index2++;
+                            } else {
+                                double mean = sumEx / (i + 1);  // w_i are identical, so they are omitted to avoid exceeding type limit
+                                double newValue;
+                                double std2 = 0;
+                                if (mean > meanQ + beta) {
+                                    newValue = meanQ + beta - (mean - meanQ - beta) * (i + 1) * windowLength / (lenQ - (i + 1) * 1.0 * windowLength);
+                                    mean = meanQ + beta;
+                                    std2 = (sumEx2 * 1.0 * windowLength + (lenQ - (i + 1) * 1.0 * windowLength) * newValue * newValue) / lenQ - mean * mean;
+                                }
+                                if (validPositions.get(index1).getRight() < positions.get(index2).getRight()) {
+                                    if (Double.compare(std2, alpha * alpha * stdQ * stdQ) <= 0) {
+                                        nextValidPositions.add(new Interval(Math.max(validPositions.get(index1).getLeft(), positions.get(index2).getLeft()) + deltaW, validPositions.get(index1).getRight() + deltaW, sumEx, sumEx2));
+                                    }
+                                    index1++;
+                                } else {
+                                    if (Double.compare(std2, alpha * alpha * stdQ * stdQ) <= 0) {
+                                        nextValidPositions.add(new Interval(Math.max(validPositions.get(index1).getLeft(), positions.get(index2).getLeft()) + deltaW, positions.get(index2).getRight() + deltaW, sumEx, sumEx2));
+                                    }
+                                    index2++;
+                                }
                             }
                         }
                     }
@@ -217,13 +231,21 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
     }
 
     private Pair<Integer, Integer> getCountsFromStatisticInfo(int Wu, double meanMin, double meanMax) {
-        double beginRound = 1.0/alpha * meanMin + (1 - 1.0/alpha) * meanQ - beta - Math.sqrt(1.0/(alpha*alpha) * stdQ*stdQ * epsilon*epsilon / Wu);
-        double beginRound1 = alpha * meanMin + (1 - alpha) * meanQ - beta - Math.sqrt(alpha*alpha * stdQ*stdQ * epsilon*epsilon / Wu);
-        beginRound = MeanIntervalUtils.toRound(Math.min(beginRound, beginRound1));
+        double beginRound, endRound;
+        if (!isStandardization) {
+            // without standardization
+            beginRound = meanMin - epsilon / Math.sqrt(Wu);
+            endRound = meanMax + epsilon / Math.sqrt(Wu);
+        } else {
+            // with standardization
+            beginRound = 1.0 / alpha * meanMin + (1 - 1.0 / alpha) * meanQ - beta - Math.sqrt(1.0 / (alpha * alpha) * stdQ * stdQ * epsilon * epsilon / Wu);
+            double beginRound1 = alpha * meanMin + (1 - alpha) * meanQ - beta - Math.sqrt(alpha * alpha * stdQ * stdQ * epsilon * epsilon / Wu);
+            beginRound = MeanIntervalUtils.toRound(Math.min(beginRound, beginRound1));
 
-        double endRound = alpha * meanMax + (1 - alpha) * meanQ + beta + Math.sqrt(alpha*alpha * stdQ*stdQ * epsilon*epsilon / Wu);
-        double endRound1 = 1.0/alpha * meanMax + (1 - 1.0/alpha) * meanQ + beta + Math.sqrt(1.0/(alpha*alpha) * stdQ*stdQ * epsilon*epsilon / Wu);
-        endRound = MeanIntervalUtils.toRound(Math.max(endRound, endRound1));
+            endRound = alpha * meanMax + (1 - alpha) * meanQ + beta + Math.sqrt(alpha * alpha * stdQ * stdQ * epsilon * epsilon / Wu);
+            double endRound1 = 1.0 / alpha * meanMax + (1 - 1.0 / alpha) * meanQ + beta + Math.sqrt(1.0 / (alpha * alpha) * stdQ * stdQ * epsilon * epsilon / Wu);
+            endRound = MeanIntervalUtils.toRound(Math.max(endRound, endRound1));
+        }
 
         int index = Collections.binarySearch(statisticInfo, new Pair<>(beginRound, 0), Comparator.comparing(o -> o.left));
         index = index < 0 ? -(index + 1) : index;
