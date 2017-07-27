@@ -18,30 +18,32 @@ public class QueryConfig {
     private double epsilon;
 
     private double alpha;
-
     private double beta;
-
-    private int windowLength;
+    private boolean normalization;
 
     private boolean useCache;
 
-    private QueryConfig() {
-        this.windowLength = IndexConfig.DEFAULT_WINDOW_LENGTH;
+    private IndexConfig indexConfig;
+
+    private QueryConfig(IndexConfig indexConfig) {
+        this.indexConfig = indexConfig;
+        this.useCache = true;
         this.alpha = 1.0;
         this.beta = 0.0;
-        this.useCache = true;
+        this.normalization = false;
     }
 
-    public QueryConfig(List<Double> querySeries, double epsilon) {
-        this();
+    public QueryConfig(IndexConfig indexConfig, List<Double> querySeries, double epsilon) {
+        this(indexConfig);
         this.querySeries = querySeries;
         this.epsilon = epsilon;
     }
 
-    public QueryConfig(List<Double> querySeries, double epsilon, double alpha, double beta) {
-        this(querySeries, epsilon);
+    public QueryConfig(IndexConfig indexConfig, List<Double> querySeries, double epsilon, double alpha, double beta) {
+        this(indexConfig, querySeries, epsilon);
         this.alpha = alpha;
         this.beta = beta;
+        this.normalization = true;
     }
 
     public boolean isUseCache() {
@@ -84,11 +86,19 @@ public class QueryConfig {
         this.beta = beta;
     }
 
-    public int getWindowLength() {
-        return windowLength;
+    public boolean isNormalization() {
+        return normalization;
     }
 
-    public void setWindowLength(int windowLength) {
-        this.windowLength = windowLength;
+    public void setNormalization(boolean normalization) {
+        this.normalization = normalization;
+    }
+
+    public IndexConfig getIndexConfig() {
+        return indexConfig;
+    }
+
+    public void setIndexConfig(IndexConfig indexConfig) {
+        this.indexConfig = indexConfig;
     }
 }

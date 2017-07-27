@@ -34,21 +34,19 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
 
     private int lenQ, windowLength;
     private double epsilon, alpha, beta, meanQ, stdQ;
-    private boolean isStandardization;
+    private boolean normalization;
 
     public KvMatchQueryExecutor(QueryConfig queryConfig, Path columnPath, String indexFilePath) {
         this.queryConfig = queryConfig;
         this.columnPath = columnPath;
         this.indexFilePath = indexFilePath;
 
+        normalization = queryConfig.isNormalization();
         epsilon = queryConfig.getEpsilon();
         alpha = queryConfig.getAlpha();
         beta = queryConfig.getBeta();
         lenQ = queryConfig.getQuerySeries().size();
-        windowLength = queryConfig.getWindowLength();
-        if (Double.compare(alpha, 1.0) == 0 && Double.compare(beta, 0.0) == 0) {
-            isStandardization = false;
-        }
+        windowLength = queryConfig.getIndexConfig().getWindowLength();
     }
 
     @Override
@@ -68,7 +66,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
             for (int i = 0; i < queries.size(); i++) {
                 QuerySegment query = queries.get(i);
 
-                logger.debug("Window #{} - {} - meanMin:{} - meanMax:{}", i + 1, query.getOrder(), query.getMeanMin(), query.getMeanMax());
+                logger.debug("Window #{} - {} - meanMin: {} - meanMax: {}", i + 1, query.getOrder(), query.getMeanMin(), query.getMeanMax());
 
                 int deltaW = (i == queries.size() - 1) ? 0 : (queries.get(i + 1).getOrder() - query.getOrder());// * WuList[0];
 
@@ -79,12 +77,12 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
 
                 // query possible rows which mean is in possible distance range of i th disjoint window
                 double beginRound, endRound;
-                if (!isStandardization) {
-                    // without standardization
+                if (!normalization) {
+                    // without normalization
                     beginRound = query.getMeanMin() - epsilon / Math.sqrt(query.getWindowLength());
                     endRound = query.getMeanMax() + epsilon / Math.sqrt(query.getWindowLength());
                 } else {
-                    // with standardization
+                    // with normalization
                     beginRound = 1.0 / alpha * query.getMeanMin() + (1 - 1.0 / alpha) * meanQ - beta - Math.sqrt(1.0 / (alpha * alpha) * stdQ * stdQ * epsilon * epsilon / query.getWindowLength());
                     double beginRound1 = alpha * query.getMeanMin() + (1 - alpha) * meanQ - beta - Math.sqrt(alpha * alpha * stdQ * stdQ * epsilon * epsilon / query.getWindowLength());
                     beginRound = MeanIntervalUtils.toRound(Math.min(beginRound, beginRound1), statisticInfo);
@@ -160,17 +158,17 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
                         } else if (positions.get(index2).getRight() < validPositions.get(index1).getLeft()) {
                             index2++;
                         } else {
-                            double sumEx = validPositions.get(index1).getEx() + positions.get(index2).getEx();
-                            double sumEx2 = validPositions.get(index1).getEx2() + positions.get(index2).getEx2();
-                            if (!isStandardization) {
+                            if (!normalization) {
                                 if (validPositions.get(index1).getRight() < positions.get(index2).getRight()) {
-                                    nextValidPositions.add(new Interval(Math.max(validPositions.get(index1).getLeft(), positions.get(index2).getLeft()) + deltaW, validPositions.get(index1).getRight() + deltaW, sumEx, sumEx2));
+                                    nextValidPositions.add(new Interval(Math.max(validPositions.get(index1).getLeft(), positions.get(index2).getLeft()) + deltaW, validPositions.get(index1).getRight() + deltaW, 0, 0));
                                     index1++;
                                 } else {
-                                    nextValidPositions.add(new Interval(Math.max(validPositions.get(index1).getLeft(), positions.get(index2).getLeft()) + deltaW, positions.get(index2).getRight() + deltaW, sumEx, sumEx2));
+                                    nextValidPositions.add(new Interval(Math.max(validPositions.get(index1).getLeft(), positions.get(index2).getLeft()) + deltaW, positions.get(index2).getRight() + deltaW, 0, 0));
                                     index2++;
                                 }
                             } else {
+                                double sumEx = validPositions.get(index1).getEx() + positions.get(index2).getEx();
+                                double sumEx2 = validPositions.get(index1).getEx2() + positions.get(index2).getEx2();
                                 double mean = sumEx / (i + 1);  // w_i are identical, so they are omitted to avoid exceeding type limit
                                 double newValue;
                                 double std2 = 0;
@@ -232,12 +230,12 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
 
     private Pair<Integer, Integer> getCountsFromStatisticInfo(int Wu, double meanMin, double meanMax) {
         double beginRound, endRound;
-        if (!isStandardization) {
-            // without standardization
+        if (!normalization) {
+            // without normalization
             beginRound = meanMin - epsilon / Math.sqrt(Wu);
             endRound = meanMax + epsilon / Math.sqrt(Wu);
         } else {
-            // with standardization
+            // with normalization
             beginRound = 1.0 / alpha * meanMin + (1 - 1.0 / alpha) * meanQ - beta - Math.sqrt(1.0 / (alpha * alpha) * stdQ * stdQ * epsilon * epsilon / Wu);
             double beginRound1 = alpha * meanMin + (1 - alpha) * meanQ - beta - Math.sqrt(alpha * alpha * stdQ * stdQ * epsilon * epsilon / Wu);
             beginRound = MeanIntervalUtils.toRound(Math.min(beginRound, beginRound1));
