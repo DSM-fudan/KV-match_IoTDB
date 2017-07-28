@@ -27,7 +27,7 @@ public class IntervalUtils {
         return union(intervals1, intervals2);
     }
 
-    public static List<Pair<Long,Long>> union(List<Pair<Long, Long>> intervals1, List<Pair<Long, Long>> intervals2) {
+    public static List<Pair<Long, Long>> union(List<Pair<Long, Long>> intervals1, List<Pair<Long, Long>> intervals2) {
         List<Pair<Long, Long>> ret = new ArrayList<>();
 
         int index1 = 0, index2 = 0;

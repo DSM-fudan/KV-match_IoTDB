@@ -110,10 +110,11 @@ public class KvMatchIndexBuilder implements Callable<Boolean> {
                 rawStatisticInfo.add(new Pair<>((Double) entry.getKey(), new Pair<>(indexNode1.getPositions().size(), 0)));
                 average.append(indexNode1.getPositions().size());
             }
-            rawStatisticInfo.sort(Comparator.comparing(o -> o.left));
+            rawStatisticInfo.sort((o1, o2) -> -o1.left.compareTo(o2.left));
             logger.info("number of disjoint window intervals: average: {}, minimum: {}, maximum: {}", average.getAverage(), average.getMinimum(), average.getMaximum());
 
             // Step 3: merge adjacent index nodes satisfied criterion, and store to index file
+            Map<Double, IndexNode> indexStore = new TreeMap<>();
             List<Pair<Double, Pair<Integer, Integer>>> statisticInfo = new ArrayList<>(indexNodeMap.size());
             IndexNode last = indexNodeMap.get(rawStatisticInfo.get(0).left);
             for (int i = 1; i < rawStatisticInfo.size(); i++) {
@@ -129,17 +130,17 @@ public class KvMatchIndexBuilder implements Callable<Boolean> {
                 }
                 if (!isMerged) {
                     double key = rawStatisticInfo.get(i - 1).left;
-                    indexFileWriter.writeIndex(key, last);
+                    indexStore.put(key, last);
                     statisticInfo.add(new Pair<>(key, last.getStatisticInfoPair()));
                     last = current;
                 }
             }
             double key = rawStatisticInfo.get(rawStatisticInfo.size() - 1).left;  // store the last row to index file
-            indexFileWriter.writeIndex(key, last);
+            indexStore.put(key, last);
             statisticInfo.add(new Pair<>(key, last.getStatisticInfoPair()));
 
-            // Step 4: store statistic info to index file and close file
-            indexFileWriter.writeStatisticInfo(statisticInfo);
+            // Step 4: store to index file and close file
+            indexFileWriter.write(indexStore, statisticInfo);
 
             return true;
         } catch (IOException e) {

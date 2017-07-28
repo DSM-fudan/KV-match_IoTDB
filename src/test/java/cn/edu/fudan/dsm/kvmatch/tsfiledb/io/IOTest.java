@@ -8,10 +8,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.Assert.*;
@@ -23,7 +20,7 @@ public class IOTest {
 
     private static final String INDEX_PATH = "tmp" + File.separator + "index.test";
 
-    private static Map<Double, IndexNode> indexes = new HashMap<>();
+    private static Map<Double, IndexNode> indexes = new TreeMap<>();
 
     private static List<Pair<Double, Pair<Integer, Integer>>> statisticInfo = new ArrayList<>();
 
@@ -54,8 +51,7 @@ public class IOTest {
     public void test() throws IOException {
         // test write
         IndexFileWriter indexFileWriter = new IndexFileWriter(INDEX_PATH);
-        indexFileWriter.writeIndexes(indexes);
-        indexFileWriter.writeStatisticInfo(statisticInfo);
+        indexFileWriter.write(indexes, statisticInfo);
         indexFileWriter.close();
 
         // test read
@@ -84,10 +80,12 @@ public class IOTest {
     }
 
     @After
-    public void clean() {
+    public void clean() throws IOException {
         File indexFile = new File(INDEX_PATH);
         if (indexFile.exists()) {
-            indexFile.delete();
+            if (!indexFile.delete()) {
+                throw new IOException("Can not delete file " + indexFile);
+            }
         }
     }
 

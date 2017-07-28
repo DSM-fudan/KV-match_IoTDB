@@ -6,7 +6,10 @@ import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.Bytes;
 import cn.edu.thu.tsfile.common.utils.Pair;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Index file writer for KV-match file version.
@@ -17,7 +20,7 @@ public class IndexFileWriter implements Closeable {
 
     private BufferedOutputStream writer;
 
-    private long offset;
+    private long offset = 0L;
 
     private List<Long> offsets = new ArrayList<>();  // last line
 
@@ -29,18 +32,23 @@ public class IndexFileWriter implements Closeable {
             }
         }
         this.writer = new BufferedOutputStream(new FileOutputStream(file));
-        offset = 0L;
     }
 
-    public void writeIndexes(Map<Double, IndexNode> indexes) throws IOException {
-        // sort index map by key
-        TreeMap<Double, IndexNode> sortedIndexes = new TreeMap<>(indexes);
+    public void write(Map<Double, IndexNode> sortedIndexes, List<Pair<Double, Pair<Integer, Integer>>> statisticInfo) throws IOException {
+        offset = 0L;
+        offsets.clear();
+        writeIndexes(sortedIndexes);
+        writeStatisticInfo(statisticInfo);
+        writeOffsetInfo();  // write file offset information to the end of file
+    }
+
+    private void writeIndexes(Map<Double, IndexNode> sortedIndexes) throws IOException {
         for (Map.Entry<Double, IndexNode> entry : sortedIndexes.entrySet()) {
             writeIndex(entry.getKey(), entry.getValue());
         }
     }
 
-    public void writeIndex(double key, IndexNode value) throws IOException {
+    private void writeIndex(double key, IndexNode value) throws IOException {
         offsets.add(offset);
         byte[] keyBytes = Bytes.toBytes(key);
         byte[] valueBytes = value.toBytesCompact();
@@ -50,7 +58,7 @@ public class IndexFileWriter implements Closeable {
         offset += keyBytes.length + valueBytes.length;
     }
 
-    public void writeStatisticInfo(List<Pair<Double, Pair<Integer, Integer>>> statisticInfo) throws IOException {
+    private void writeStatisticInfo(List<Pair<Double, Pair<Integer, Integer>>> statisticInfo) throws IOException {
         offsets.add(offset);
         // store statistic information for query order optimization
         statisticInfo.sort(Comparator.comparingDouble(o -> o.left));
@@ -62,8 +70,6 @@ public class IndexFileWriter implements Closeable {
 
     @Override
     public void close() throws IOException {
-        // write file offset information to the end of file
-        writeOffsetInfo();
         writer.close();
     }
 
