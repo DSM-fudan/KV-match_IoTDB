@@ -80,7 +80,10 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
                 if (!normalization) {
                     // without normalization
                     beginRound = query.getMeanMin() - epsilon / Math.sqrt(query.getWindowLength());
+                    beginRound = MeanIntervalUtils.toRound(beginRound, statisticInfo);
+
                     endRound = query.getMeanMax() + epsilon / Math.sqrt(query.getWindowLength());
+                    endRound = MeanIntervalUtils.toRound(endRound);
                 } else {
                     // with normalization
                     beginRound = 1.0 / alpha * query.getMeanMin() + (1 - 1.0 / alpha) * meanQ - beta - Math.sqrt(1.0 / (alpha * alpha) * stdQ * stdQ * epsilon * epsilon / query.getWindowLength());
@@ -233,7 +236,10 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
         if (!normalization) {
             // without normalization
             beginRound = meanMin - epsilon / Math.sqrt(Wu);
+            beginRound = MeanIntervalUtils.toRound(beginRound);
+
             endRound = meanMax + epsilon / Math.sqrt(Wu);
+            endRound = MeanIntervalUtils.toRound(endRound);
         } else {
             // with normalization
             beginRound = 1.0 / alpha * meanMin + (1 - 1.0 / alpha) * meanQ - beta - Math.sqrt(1.0 / (alpha * alpha) * stdQ * stdQ * epsilon * epsilon / Wu);
@@ -281,7 +287,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
             ex += queryConfig.getQuerySeries().get(i);
         }
         for (int i = 0; i + 2 * windowLength - 1 <= lenQ; i += windowLength) {
-            double meanMin = 1000000, meanMax = -1000000;
+            double meanMin = 2000000000, meanMax = -2000000000;
             for (int j = i + windowLength - 1; j < i + 2 * windowLength - 1; j++) {
                 ex += queryConfig.getQuerySeries().get(j);
                 if (j - windowLength >= 0) {

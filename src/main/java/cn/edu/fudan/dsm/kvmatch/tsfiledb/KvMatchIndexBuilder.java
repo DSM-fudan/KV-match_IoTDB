@@ -14,10 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 /**
@@ -113,7 +110,7 @@ public class KvMatchIndexBuilder implements Callable<Boolean> {
                 rawStatisticInfo.add(new Pair<>((Double) entry.getKey(), new Pair<>(indexNode1.getPositions().size(), 0)));
                 average.append(indexNode1.getPositions().size());
             }
-            rawStatisticInfo.sort((o1, o2) -> -o1.left.compareTo(o2.left));
+            rawStatisticInfo.sort(Comparator.comparing(o -> o.left));
             logger.info("number of disjoint window intervals: average: {}, minimum: {}, maximum: {}", average.getAverage(), average.getMinimum(), average.getMaximum());
 
             // Step 3: merge adjacent index nodes satisfied criterion, and store to index file
