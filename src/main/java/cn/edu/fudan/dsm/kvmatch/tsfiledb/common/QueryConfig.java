@@ -43,7 +43,9 @@ public class QueryConfig {
         this(indexConfig, querySeries, epsilon);
         this.alpha = alpha;
         this.beta = beta;
-        this.normalization = true;
+        if (Double.compare(alpha, 1.0) != 0 || Double.compare(beta, 0.0) != 0) {
+            this.normalization = true;
+        }
     }
 
     public boolean isUseCache() {
