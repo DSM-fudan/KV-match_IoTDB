@@ -57,7 +57,7 @@ public class KvMatchIndexBuilder implements Callable<Boolean> {
 
                 long curTime = row.getTime();
                 double curValue = Double.parseDouble(row.getFields().get(0).getStringValue());  // TODO: improve for performance
-                logger.debug("{}: {}", curTime, curValue);
+                logger.trace("{}: {}", curTime, curValue);
                 if (lastTime == 0) {  // TODO: the first window is not right
                     lastTime = curTime - 1;
                     lastValue = curValue;
