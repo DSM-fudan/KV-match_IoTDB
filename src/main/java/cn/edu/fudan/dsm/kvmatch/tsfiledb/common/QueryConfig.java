@@ -1,5 +1,7 @@
 package cn.edu.fudan.dsm.kvmatch.tsfiledb.common;
 
+import cn.edu.thu.tsfile.common.utils.Pair;
+
 import java.util.List;
 
 /**
@@ -21,6 +23,8 @@ public class QueryConfig {
     private double beta;
     private boolean normalization;
 
+    private Pair<Long, Long> validTimeInterval;
+
     private boolean useCache;
 
     private IndexConfig indexConfig;
@@ -31,6 +35,7 @@ public class QueryConfig {
         this.alpha = 1.0;
         this.beta = 0.0;
         this.normalization = false;
+        this.validTimeInterval = new Pair<>(0L, Long.MAX_VALUE);
     }
 
     public QueryConfig(IndexConfig indexConfig, List<Double> querySeries, double epsilon) {
@@ -39,13 +44,14 @@ public class QueryConfig {
         this.epsilon = epsilon;
     }
 
-    public QueryConfig(IndexConfig indexConfig, List<Double> querySeries, double epsilon, double alpha, double beta) {
+    public QueryConfig(IndexConfig indexConfig, List<Double> querySeries, double epsilon, double alpha, double beta, Pair<Long, Long> validTimeInterval) {
         this(indexConfig, querySeries, epsilon);
         this.alpha = alpha;
         this.beta = beta;
         if (Double.compare(alpha, 1.0) != 0 || Double.compare(beta, 0.0) != 0) {
             this.normalization = true;
         }
+        this.validTimeInterval = validTimeInterval;
     }
 
     public boolean isUseCache() {
@@ -94,6 +100,14 @@ public class QueryConfig {
 
     public void setNormalization(boolean normalization) {
         this.normalization = normalization;
+    }
+
+    public Pair<Long, Long> getValidTimeInterval() {
+        return validTimeInterval;
+    }
+
+    public void setValidTimeInterval(Pair<Long, Long> validTimeInterval) {
+        this.validTimeInterval = validTimeInterval;
     }
 
     public IndexConfig getIndexConfig() {

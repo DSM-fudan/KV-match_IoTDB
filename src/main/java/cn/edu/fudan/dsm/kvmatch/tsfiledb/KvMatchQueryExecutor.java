@@ -57,7 +57,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
             indexCache = new ArrayList<>();
 
             List<QuerySegment> queries = determineQueryPlan();
-            logger.debug("Query order: {}", queries);
+            logger.trace("Query order: {}", queries);
 
             List<Interval> validPositions = new ArrayList<>();
             int lastSegment = queries.get(queries.size() - 1).getOrder();
@@ -66,7 +66,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
             for (int i = 0; i < queries.size(); i++) {
                 QuerySegment query = queries.get(i);
 
-                logger.debug("Window #{} - {} - meanMin: {} - meanMax: {}", i + 1, query.getOrder(), query.getMeanMin(), query.getMeanMax());
+                logger.trace("Window #{} - {} - meanMin: {} - meanMax: {}", i + 1, query.getOrder(), query.getMeanMin(), query.getMeanMax());
 
                 int deltaW = (i == queries.size() - 1) ? 0 : (queries.get(i + 1).getOrder() - query.getOrder());// * WuList[0];
 
@@ -95,7 +95,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
                     endRound = MeanIntervalUtils.toRound(Math.max(endRound, endRound1));
                 }
 
-                logger.debug("Scan index from {} to {}", beginRound, endRound);
+                logger.trace("Scan index from {} to {}", beginRound, endRound);
                 if (queryConfig.isUseCache()) {
                     int index_l = findCache(beginRound);
                     int index_r = findCache(endRound, index_l);
@@ -202,12 +202,12 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
 
                 int cntCurrentDisjointCandidateWindows = candidates.right.left;
                 long cntCurrentCandidateOffsets = candidates.right.right * windowLength;
-                logger.debug("Disjoint candidate windows: {}, candidate offsets: {}", cntCurrentDisjointCandidateWindows, cntCurrentCandidateOffsets);
+                logger.trace("Disjoint candidate windows: {}, candidate offsets: {}", cntCurrentDisjointCandidateWindows, cntCurrentCandidateOffsets);
 
                 int step1TimeUsageUntilNow = (int) (System.currentTimeMillis() - startTime);
                 double step2TimeUsageEstimated = QueryConfig.STEP_2_TIME_ESTIMATE_COEFFICIENT_A * cntCurrentDisjointCandidateWindows + QueryConfig.STEP_2_TIME_ESTIMATE_COEFFICIENT_B * cntCurrentCandidateOffsets / 100000 * lenQ + QueryConfig.STEP_2_TIME_ESTIMATE_INTERCEPT;
                 double totalTimeUsageEstimated = step1TimeUsageUntilNow + step2TimeUsageEstimated;
-                logger.debug("Time usage: step 1 until now: {}, step 2 estimated: {}, total estimated: {}", step1TimeUsageUntilNow, step2TimeUsageEstimated, totalTimeUsageEstimated);
+                logger.trace("Time usage: step 1 until now: {}, step 2 estimated: {}, total estimated: {}", step1TimeUsageUntilNow, step2TimeUsageEstimated, totalTimeUsageEstimated);
 
                 if (i >= 5 && totalTimeUsageEstimated > lastTotalTimeUsageEstimated) {
                     lastSegment = (i == queries.size() - 1) ? query.getOrder() : queries.get(i + 1).getOrder();
@@ -224,9 +224,12 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
             for (Interval validPosition : validPositions) {
                 long begin = (validPosition.getLeft() - (lastSegment - 1) - 1) * windowLength + 1 - windowLength + 1;
                 long end = (validPosition.getRight() - (lastSegment - 1) - 1) * windowLength + 1 + lenQ - 1;
-                if (begin < 1) begin = 1;
+                if (begin < queryConfig.getValidTimeInterval().left) begin = queryConfig.getValidTimeInterval().left;
+                if (end > queryConfig.getValidTimeInterval().right) end = queryConfig.getValidTimeInterval().right;
                 candidateRanges.add(new Pair<>(begin, end));
             }
+
+            logger.info("Finished querying index for {}: {}", columnPath, indexFilePath);
             return new QueryResult(candidateRanges);
         }
     }
@@ -279,7 +282,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
         meanQ = ex / lenQ;
         stdQ = Math.sqrt(ex2 / lenQ - meanQ * meanQ);
 
-        logger.info("meanQ: {}, stdQ: {}, alpha: {}, beta: {}", meanQ, stdQ, alpha, beta);
+        logger.debug("lenQ: {}, meanQ: {}, stdQ: {}", lenQ, meanQ, stdQ);
 
         // sliding windows
         ex = 0;

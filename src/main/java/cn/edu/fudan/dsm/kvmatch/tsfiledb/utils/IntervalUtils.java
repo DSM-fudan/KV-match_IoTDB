@@ -21,6 +21,32 @@ public class IntervalUtils {
         return mergePair(intervals);
     }
 
+    public static List<Pair<Long, Long>> extendBoth(List<Pair<Long, Long>> intervals, int extendLength) {
+        for (Pair<Long, Long> interval : intervals) {
+            if (interval.left != 0) {
+                interval.left -= extendLength + 1;
+            }
+            if (interval.right != Long.MAX_VALUE) {
+                interval.right += extendLength - 1;
+            }
+        }
+        return intervals;
+    }
+
+    public static List<Pair<Long, Long>> excludeNotIn(List<Pair<Long, Long>> intervals, Pair<Long, Long> validInterval) {
+        List<Pair<Long, Long>> ret = new ArrayList<>();
+        for (Pair<Long, Long> interval : intervals) {  // assume intervals have been sorted and merged
+            if (interval.left >= validInterval.left && interval.right <= validInterval.right) {
+                ret.add(interval);
+            } else if (interval.left < validInterval.left && interval.right <= validInterval.right) {
+                ret.add(new Pair<>(validInterval.left, interval.right));
+            } else if (interval.left >= validInterval.left && interval.right > validInterval.right) {
+                ret.add(new Pair<>(interval.left, validInterval.right));
+            }
+        }
+        return ret;
+    }
+
     public static List<Pair<Long, Long>> sortAndUnion(List<Pair<Long, Long>> intervals1, List<Pair<Long, Long>> intervals2) {
         intervals1.sort(Comparator.comparing(o -> o.left));
         intervals2.sort(Comparator.comparing(o -> o.left));

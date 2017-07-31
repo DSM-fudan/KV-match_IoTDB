@@ -71,7 +71,7 @@ public class KvMatchIndexBuilder implements Callable<Boolean> {
                         ex = 0;
 
                         double curMeanRound = MeanIntervalUtils.toRound(mean);
-                        logger.debug("key: {}, mean: {}, time: {}", curMeanRound, mean, time);
+                        logger.trace("key: {}, mean: {}, time: {}", curMeanRound, mean, time);
 
                         long pos = time / indexConfig.getWindowLength();
                         if (lastMeanRound == null || !lastMeanRound.equals(curMeanRound) || pos - indexNode.getPositions().get(indexNode.getPositions().size() - 1).left == IndexNode.MAXIMUM_DIFF - 1) {
@@ -80,7 +80,7 @@ public class KvMatchIndexBuilder implements Callable<Boolean> {
                                 indexNodeMap.put(lastMeanRound, indexNode);
                             }
                             // new row
-                            logger.debug("new row, key: {}", curMeanRound);
+                            logger.trace("new row, key: {}", curMeanRound);
                             indexNode = indexNodeMap.get(curMeanRound);
                             if (indexNode == null) {
                                 indexNode = new IndexNode();
@@ -89,7 +89,7 @@ public class KvMatchIndexBuilder implements Callable<Boolean> {
                             lastMeanRound = curMeanRound;
                         } else {
                             // use last row
-                            logger.debug("use last row, key: {}", lastMeanRound);
+                            logger.trace("use last row, key: {}", lastMeanRound);
                             int index = indexNode.getPositions().size();
                             indexNode.getPositions().get(index - 1).right = pos;
                         }
@@ -111,7 +111,7 @@ public class KvMatchIndexBuilder implements Callable<Boolean> {
                 average.append(indexNode1.getPositions().size());
             }
             rawStatisticInfo.sort((o1, o2) -> -o1.left.compareTo(o2.left));
-            logger.info("number of disjoint window intervals: average: {}, minimum: {}, maximum: {}", average.getAverage(), average.getMinimum(), average.getMaximum());
+            logger.debug("number of disjoint window intervals: average: {}, minimum: {}, maximum: {}", average.getAverage(), average.getMinimum(), average.getMaximum());
 
             // Step 3: merge adjacent index nodes satisfied criterion, and store to index file
             Map<Double, IndexNode> indexStore = new TreeMap<>();
@@ -123,7 +123,7 @@ public class KvMatchIndexBuilder implements Callable<Boolean> {
                 if (rawStatisticInfo.get(i).right.left < average.getAverage() * 1.2) {
                     IndexNode merged = IndexNodeUtils.mergeIndexNode(last, current);
                     if (merged.getPositions().size() < (last.getPositions().size() + current.getPositions().size()) * 0.8) {
-                        logger.debug("[MERGE] {} - last: {}, current: {}, merged: {}", rawStatisticInfo.get(i - 1).left, last.getPositions().size(), current.getPositions().size(), merged.getPositions().size());
+                        logger.trace("[MERGE] {} - last: {}, current: {}, merged: {}", rawStatisticInfo.get(i - 1).left, last.getPositions().size(), current.getPositions().size(), merged.getPositions().size());
                         last = merged;
                         isMerged = true;
                     }
@@ -142,6 +142,7 @@ public class KvMatchIndexBuilder implements Callable<Boolean> {
             // Step 4: store to index file and close file
             indexFileWriter.write(indexStore, statisticInfo);
 
+            logger.info("Finished building index for {}: {}", columnPath, targetFilePath);
             return true;
         } catch (IOException e) {
             logger.error(e.getMessage(), e.getCause());
