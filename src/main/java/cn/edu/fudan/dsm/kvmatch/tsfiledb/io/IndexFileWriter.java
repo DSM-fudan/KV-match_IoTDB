@@ -73,7 +73,7 @@ public class IndexFileWriter implements Closeable {
         writer.close();
         // rename the building file to desired name
         File targetFile = new File(targetFilePath);
-        FileUtils.forceDelete(targetFile);
+        FileUtils.deleteQuietly(targetFile);
         FileUtils.moveFile(new File(targetFilePath + ".building"), targetFile);
     }
 
