@@ -40,13 +40,15 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
         this.queryConfig = queryConfig;
         this.columnPath = columnPath;
         this.indexFilePath = indexFilePath;
-
+        // copy useful variables from query config
         normalization = queryConfig.isNormalization();
         epsilon = queryConfig.getEpsilon();
         alpha = queryConfig.getAlpha();
         beta = queryConfig.getBeta();
         lenQ = queryConfig.getQuerySeries().size();
         windowLength = queryConfig.getIndexConfig().getWindowLength();
+        meanQ = queryConfig.getMeanQ();
+        stdQ = queryConfig.getStdQ();
     }
 
     @Override
@@ -57,7 +59,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
             indexCache = new ArrayList<>();
 
             List<QuerySegment> queries = determineQueryPlan();
-            logger.trace("Query order: {}", queries);
+            logger.debug("Query order: {}", queries);
 
             List<Interval> validPositions = new ArrayList<>();
             int lastSegment = queries.get(queries.size() - 1).getOrder();
@@ -66,7 +68,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
             for (int i = 0; i < queries.size(); i++) {
                 QuerySegment query = queries.get(i);
 
-                logger.trace("Window #{} - {} - meanMin: {} - meanMax: {}", i + 1, query.getOrder(), query.getMeanMin(), query.getMeanMax());
+                logger.debug("Window #{} - {} - meanMin: {} - meanMax: {}", i + 1, query.getOrder(), query.getMeanMin(), query.getMeanMax());
 
                 int deltaW = (i == queries.size() - 1) ? 0 : (queries.get(i + 1).getOrder() - query.getOrder());// * WuList[0];
 
@@ -271,21 +273,8 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
 
     private List<QuerySegment> determineQueryPlan() {
         List<QuerySegment> queries = new ArrayList<>();
-
-        // calculate mean and std of whole query series
-        double ex = 0, ex2 = 0;
-        for (int i = 0; i < lenQ; i++) {
-            double value = queryConfig.getQuerySeries().get(i);
-            ex += value;
-            ex2 += value * value;
-        }
-        meanQ = ex / lenQ;
-        stdQ = Math.sqrt(ex2 / lenQ - meanQ * meanQ);
-
-        logger.debug("lenQ: {}, meanQ: {}, stdQ: {}", lenQ, meanQ, stdQ);
-
         // sliding windows
-        ex = 0;
+        double ex = 0;
         for (int i = 0; i < windowLength - 1; i++) {
             ex += queryConfig.getQuerySeries().get(i);
         }
@@ -302,10 +291,8 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
             }
             queries.add(new QuerySegment(meanMin, meanMax, i / windowLength + 1, getCountsFromStatisticInfo(windowLength, meanMin, meanMax).left, windowLength));
         }
-
         // optimize query order
         queries.sort(Comparator.comparingInt(QuerySegment::getCount));
-
         return queries;
     }
 
