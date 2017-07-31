@@ -4,6 +4,7 @@ import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.IndexNode;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.ByteUtils;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.Bytes;
 import cn.edu.thu.tsfile.common.utils.Pair;
+import org.apache.commons.io.FileUtils;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -18,6 +19,8 @@ import java.util.Map;
  */
 public class IndexFileWriter implements Closeable {
 
+    private String targetFilePath;
+
     private BufferedOutputStream writer;
 
     private long offset = 0L;
@@ -25,12 +28,9 @@ public class IndexFileWriter implements Closeable {
     private List<Long> offsets = new ArrayList<>();  // last line
 
     public IndexFileWriter(String targetFilePath) throws IOException {
-        File file = new File(targetFilePath);
-        if (file.getParentFile() != null && !file.getParentFile().exists()) {
-            if (!file.getParentFile().mkdirs()) {
-                throw new IOException("Can not create directory " + file.getParent());
-            }
-        }
+        this.targetFilePath = targetFilePath;
+        File file = new File(targetFilePath + ".building");
+        FileUtils.forceMkdirParent(file);
         this.writer = new BufferedOutputStream(new FileOutputStream(file));
     }
 
@@ -71,6 +71,10 @@ public class IndexFileWriter implements Closeable {
     @Override
     public void close() throws IOException {
         writer.close();
+        // rename the building file to desired name
+        File targetFile = new File(targetFilePath);
+        FileUtils.forceDelete(targetFile);
+        FileUtils.moveFile(new File(targetFilePath + ".building"), targetFile);
     }
 
     private void writeOffsetInfo() throws IOException {
