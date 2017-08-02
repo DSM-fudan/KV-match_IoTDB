@@ -71,7 +71,7 @@ public class KvMatchIndexBuilder implements Callable<Boolean> {
                         ex = 0;
 
                         double curMeanRound = MeanIntervalUtils.toRound(mean);
-                        logger.trace("key: {}, mean: {}, time: {}", curMeanRound, mean, time);
+                        logger.debug("key: {}, mean: {}, time: {}", curMeanRound, mean, time);
 
                         long pos = time / indexConfig.getWindowLength();
                         if (lastMeanRound == null || !lastMeanRound.equals(curMeanRound) || pos - indexNode.getPositions().get(indexNode.getPositions().size() - 1).left == IndexNode.MAXIMUM_DIFF - 1) {
@@ -80,7 +80,7 @@ public class KvMatchIndexBuilder implements Callable<Boolean> {
                                 indexNodeMap.put(lastMeanRound, indexNode);
                             }
                             // new row
-                            logger.trace("new row, key: {}", curMeanRound);
+                            logger.debug("new row, key: {}", curMeanRound);
                             indexNode = indexNodeMap.get(curMeanRound);
                             if (indexNode == null) {
                                 indexNode = new IndexNode();
@@ -89,7 +89,7 @@ public class KvMatchIndexBuilder implements Callable<Boolean> {
                             lastMeanRound = curMeanRound;
                         } else {
                             // use last row
-                            logger.trace("use last row, key: {}", lastMeanRound);
+                            logger.debug("use last row, key: {}", lastMeanRound);
                             int index = indexNode.getPositions().size();
                             indexNode.getPositions().get(index - 1).right = pos;
                         }
@@ -101,6 +101,7 @@ public class KvMatchIndexBuilder implements Callable<Boolean> {
             if (indexNode != null && !indexNode.getPositions().isEmpty()) {  // put the last node
                 indexNodeMap.put(lastMeanRound, indexNode);
             }
+            if (indexNodeMap.isEmpty()) return false;
 
             // Step 2: get ordered statistic list and average number of disjoint window intervals
             List<Pair<Double, Pair<Integer, Integer>>> rawStatisticInfo = new ArrayList<>(indexNodeMap.size());

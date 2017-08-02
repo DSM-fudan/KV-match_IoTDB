@@ -35,6 +35,7 @@ public class IndexFileReader implements Closeable {
     }
 
     private void readOffsetInfo() throws IOException {
+        if (file.length() < Bytes.SIZEOF_LONG) return;
         // read from the end of file, get (the position of offsets start)
         byte[] bytes = seekAndRead(file.length() - Bytes.SIZEOF_LONG, Bytes.SIZEOF_LONG);
         long lastLineOffset = Bytes.toLong(bytes);
@@ -64,6 +65,7 @@ public class IndexFileReader implements Closeable {
     }
 
     public List<Pair<Double, Pair<Integer, Integer>>> readStatisticInfo() throws IOException {
+        if (offsets.isEmpty()) return null;
         long statisticInfoOffset = offsets.get(offsets.size() - 2);
         long offsetInfoOffset = offsets.get(offsets.size() - 1);
         byte[] bytes = seekAndRead(statisticInfoOffset, (int) (offsetInfoOffset - statisticInfoOffset));

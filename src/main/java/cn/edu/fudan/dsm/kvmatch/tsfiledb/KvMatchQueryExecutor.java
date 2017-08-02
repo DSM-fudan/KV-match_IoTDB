@@ -56,6 +56,7 @@ public class KvMatchQueryExecutor implements Callable<QueryResult> {
         logger.info("Querying index for {}: {}", columnPath, indexFilePath);
         try (IndexFileReader reader = new IndexFileReader(indexFilePath)) {
             statisticInfo = reader.readStatisticInfo();
+            if (statisticInfo == null) return new QueryResult();  // return empty result for empty file
             indexCache = new ArrayList<>();
 
             List<QuerySegment> queries = determineQueryPlan();
