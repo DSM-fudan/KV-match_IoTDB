@@ -295,8 +295,8 @@ public class Bytes {
      * Copy the byte array given in parameter and return an instance of a new byte array with the same length and the same content.
      *
      * @param bytes  the byte array to copy from
-     * @param offset
-     * @param length
+     * @param offset offset into array
+     * @param length the length of bytes to copy
      * @return a copy of the given designated byte array
      */
     public static byte[] copy(byte[] bytes, final int offset, final int length) {

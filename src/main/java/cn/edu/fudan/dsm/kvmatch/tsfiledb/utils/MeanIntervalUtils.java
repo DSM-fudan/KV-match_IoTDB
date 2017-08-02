@@ -18,7 +18,7 @@ public class MeanIntervalUtils {
 
     /**
      * Round float number to half integer.
-     * For Example: 1.9 -> 1.5,  1.4 -> 1.0,  1.5 -> 1.5, -1.9 -> -2.0, -1.4 -> -1.5, -1.5 -> -1.5
+     * For Example: 1.9 -&gt; 1.5,  1.4 -&gt; 1.0,  1.5 -&gt; 1.5, -1.9 -&gt; -2.0, -1.4 -&gt; -1.5, -1.5 -&gt; -1.5
      * TODO: should be improved later
      *
      * @param value should be rounded
@@ -55,7 +55,7 @@ public class MeanIntervalUtils {
 
     /**
      * To upper bound of mean interval.
-     * For example: 1.0 -> 1.5,  1.5 -> 2.0, -1.0 -> -0.5, -1.5 -> -1.0
+     * For example: 1.0 -&gt; 1.5,  1.5 -&gt; 2.0, -1.0 -&gt; -0.5, -1.5 -&gt; -1.0
      *
      * @param round mean interval round
      * @return upper bound
