@@ -8,8 +8,8 @@
     <artifactId>kvmatch-tsfiledb</artifactId>
     <version>1.0.0</version>
 
-    <name>${project.groupId}:${project.artifactId}</name>
-    <description>KV-match for TsFileDB</description>
+    <name>KV-match on TsFileDB</name>
+    <description>KV-match timeseries subsequence matching on TsFileDB</description>
     <url>https://github.com/DSM-fudan/KV-match_TsFileDB</url>
 
     <licenses>
