@@ -6,7 +6,7 @@
 
     <groupId>cn.edu.fudan.dsm</groupId>
     <artifactId>kvmatch-tsfiledb</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <name>KV-match on TsFileDB</name>
     <description>KV-match timeseries subsequence matching on TsFileDB</description>

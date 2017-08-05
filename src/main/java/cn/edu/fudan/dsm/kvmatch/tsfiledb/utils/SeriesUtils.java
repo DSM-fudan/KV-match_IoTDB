@@ -1,6 +1,8 @@
 package cn.edu.fudan.dsm.kvmatch.tsfiledb.utils;
 
+import cn.edu.thu.tsfile.common.exception.UnSupportedDataTypeException;
 import cn.edu.thu.tsfile.common.utils.Pair;
+import cn.edu.thu.tsfile.timeseries.read.support.Field;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,5 +28,20 @@ public class SeriesUtils {
 
     public static List<Double> amend(List<Pair<Long, Double>> keyPoints) {
         return amend(keyPoints, new Pair<>(keyPoints.get(0).left, keyPoints.get(keyPoints.size() - 1).left));
+    }
+
+    public static double getValue(Field field) {
+        switch (field.dataType) {
+            case INT32:
+                return field.getIntV();
+            case INT64:
+                return field.getLongV();
+            case FLOAT:
+                return field.getFloatV();
+            case DOUBLE:
+                return field.getDoubleV();
+            default:
+                throw new UnSupportedDataTypeException(String.valueOf(field.dataType));
+        }
     }
 }

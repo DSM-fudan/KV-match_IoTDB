@@ -6,6 +6,7 @@ import cn.edu.fudan.dsm.kvmatch.tsfiledb.io.IndexFileWriter;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.statistic.StatisticInfo;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.IndexNodeUtils;
 import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.MeanIntervalUtils;
+import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.SeriesUtils;
 import cn.edu.thu.tsfile.common.utils.Pair;
 import cn.edu.thu.tsfile.timeseries.read.qp.Path;
 import cn.edu.thu.tsfile.timeseries.read.query.QueryDataSet;
@@ -52,23 +53,26 @@ public class KvMatchIndexBuilder implements Callable<Boolean> {
             long lastTime = 0;
             double lastValue = 0;
             double ex = 0;
+            int cnt = 0;
             while (dataSet.next()) {
                 RowRecord row = dataSet.getCurrentRecord();
 
                 long curTime = row.getTime();
-                double curValue = Double.parseDouble(row.getFields().get(0).getStringValue());  // TODO: improve for performance
+                double curValue = SeriesUtils.getValue(row.getFields().get(0));  // one column only
                 logger.trace("{}: {}", curTime, curValue);
-                if (lastTime == 0) {  // TODO: the first window is not right
+                if (lastTime == 0) {
                     lastTime = curTime - 1;
                     lastValue = curValue;
                 }
                 double deltaValue = (curValue - lastValue) / (curTime - lastTime);
                 for (long time = lastTime + 1; time <= curTime; time++) {
                     ex += lastValue + deltaValue * (time - lastTime);
+                    cnt++;
 
                     if (time % indexConfig.getWindowLength() == 0) {  // a new disjoint window of data
-                        double mean = ex / indexConfig.getWindowLength();
+                        double mean = ex / Math.min(cnt, indexConfig.getWindowLength());
                         ex = 0;
+                        cnt = 0;
 
                         double curMeanRound = MeanIntervalUtils.toRound(mean);
                         logger.debug("key: {}, mean: {}, time: {}", curMeanRound, mean, time);
