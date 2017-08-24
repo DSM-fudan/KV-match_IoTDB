@@ -1,4 +1,4 @@
-package cn.edu.fudan.dsm.kvmatch.tsfiledb.utils;
+package cn.edu.fudan.dsm.kvmatch.iotdb.utils;
 
 /**
  * Utility class that handles byte arrays, conversions to/from other types.

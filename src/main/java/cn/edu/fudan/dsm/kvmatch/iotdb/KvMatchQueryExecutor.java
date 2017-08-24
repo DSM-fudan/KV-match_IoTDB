@@ -1,11 +1,11 @@
-package cn.edu.fudan.dsm.kvmatch.tsfiledb;
+package cn.edu.fudan.dsm.kvmatch.iotdb;
 
-import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.*;
-import cn.edu.fudan.dsm.kvmatch.tsfiledb.io.IndexFileReader;
-import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.IntervalUtils;
-import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.MeanIntervalUtils;
-import cn.edu.thu.tsfile.common.utils.Pair;
-import cn.edu.thu.tsfile.timeseries.read.qp.Path;
+import cn.edu.fudan.dsm.kvmatch.iotdb.common.*;
+import cn.edu.fudan.dsm.kvmatch.iotdb.io.IndexFileReader;
+import cn.edu.fudan.dsm.kvmatch.iotdb.utils.IntervalUtils;
+import cn.edu.fudan.dsm.kvmatch.iotdb.utils.MeanIntervalUtils;
+import cn.edu.tsinghua.tsfile.common.utils.Pair;
+import cn.edu.tsinghua.tsfile.timeseries.read.qp.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

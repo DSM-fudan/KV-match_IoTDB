@@ -1,7 +1,7 @@
-package cn.edu.fudan.dsm.kvmatch.tsfiledb.utils;
+package cn.edu.fudan.dsm.kvmatch.iotdb.utils;
 
-import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.Interval;
-import cn.edu.thu.tsfile.common.utils.Pair;
+import cn.edu.fudan.dsm.kvmatch.iotdb.common.Interval;
+import cn.edu.tsinghua.tsfile.common.utils.Pair;
 
 import java.util.ArrayList;
 import java.util.Comparator;

@@ -1,7 +1,7 @@
-package cn.edu.fudan.dsm.kvmatch.tsfiledb.common;
+package cn.edu.fudan.dsm.kvmatch.iotdb.common;
 
-import cn.edu.fudan.dsm.kvmatch.tsfiledb.utils.Bytes;
-import cn.edu.thu.tsfile.common.utils.Pair;
+import cn.edu.fudan.dsm.kvmatch.iotdb.utils.Bytes;
+import cn.edu.tsinghua.tsfile.common.utils.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -141,11 +141,11 @@ public class IndexNode {
         this.positions = positions;
     }
 
-    public int getNumOfIntervals() {
+    private int getNumOfIntervals() {
         return positions.size();
     }
 
-    public int getNumOfOffsets() {
+    private int getNumOfOffsets() {
         int sum = 0;
         for (Pair<Long, Long> pair : positions) {
             sum += pair.right - pair.left + 1;

@@ -1,2 +1,2 @@
-# KV-match_TsFileDB
-KV-match timeseries subsequence matching for TsFileDB
+# KV-match on IoTDB
+KV-match timeseries subsequence matching on IoTDB

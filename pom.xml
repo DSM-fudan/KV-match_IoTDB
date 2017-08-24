@@ -5,12 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cn.edu.fudan.dsm</groupId>
-    <artifactId>kvmatch-tsfiledb</artifactId>
+    <artifactId>kvmatch-iotdb</artifactId>
     <version>1.0.1</version>
 
-    <name>KV-match on TsFileDB</name>
-    <description>KV-match timeseries subsequence matching on TsFileDB</description>
-    <url>https://github.com/DSM-fudan/KV-match_TsFileDB</url>
+    <name>KV-match on IoTDB</name>
+    <description>KV-match timeseries subsequence matching on IoTDB</description>
+    <url>https://github.com/DSM-fudan/KV-match_IoTDB</url>
 
     <licenses>
         <license>
@@ -38,12 +38,12 @@
 
     <scm>
         <connection>
-            scm:git:https://github.com/DSM-fudan/KV-match_TsFileDB.git
+            scm:git:https://github.com/DSM-fudan/KV-match_IoTDB.git
         </connection>
         <developerConnection>
-            scm:git:https://github.com/DSM-fudan/KV-match_TsFileDB.git
+            scm:git:https://github.com/DSM-fudan/KV-match_IoTDB.git
         </developerConnection>
-        <url>https://github.com/DSM-fudan/KV-match_TsFileDB</url>
+        <url>https://github.com/DSM-fudan/KV-match_IoTDB</url>
     </scm>
 
     <distributionManagement>
@@ -154,7 +154,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>cn.edu.thu</groupId>
+            <groupId>cn.edu.tsinghua</groupId>
             <artifactId>tsfile</artifactId>
             <version>0.1.0</version>
         </dependency>

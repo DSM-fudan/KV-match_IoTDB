@@ -1,7 +1,7 @@
-package cn.edu.fudan.dsm.kvmatch.tsfiledb.io;
+package cn.edu.fudan.dsm.kvmatch.iotdb.io;
 
-import cn.edu.fudan.dsm.kvmatch.tsfiledb.common.IndexNode;
-import cn.edu.thu.tsfile.common.utils.Pair;
+import cn.edu.fudan.dsm.kvmatch.iotdb.common.IndexNode;
+import cn.edu.tsinghua.tsfile.common.utils.Pair;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,22 +29,22 @@ public class IOTest {
         double key = 0.1;
         IndexNode indexNode = generateIndexNode();
         indexes.put(key, indexNode);
-        statisticInfo.add(new Pair<>(key, new Pair<>(indexNode.getNumOfOffsets(), indexNode.getNumOfIntervals())));
+        statisticInfo.add(new Pair<>(key, indexNode.getStatisticInfoPair()));
 
         key = 0.2;
         indexNode = generateIndexNode();
         indexes.put(key, indexNode);
-        statisticInfo.add(new Pair<>(key, new Pair<>(indexNode.getNumOfOffsets(), indexNode.getNumOfIntervals())));
+        statisticInfo.add(new Pair<>(key, indexNode.getStatisticInfoPair()));
 
         key = 0.3;
         indexNode = generateIndexNode();
         indexes.put(key, indexNode);
-        statisticInfo.add(new Pair<>(key, new Pair<>(indexNode.getNumOfOffsets(), indexNode.getNumOfIntervals())));
+        statisticInfo.add(new Pair<>(key, indexNode.getStatisticInfoPair()));
 
         key = 0.4;
         indexNode = generateIndexNode();
         indexes.put(key, indexNode);
-        statisticInfo.add(new Pair<>(key, new Pair<>(indexNode.getNumOfOffsets(), indexNode.getNumOfIntervals())));
+        statisticInfo.add(new Pair<>(key, indexNode.getStatisticInfoPair()));
     }
 
     @Test

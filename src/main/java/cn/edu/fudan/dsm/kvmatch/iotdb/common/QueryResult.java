@@ -1,6 +1,6 @@
-package cn.edu.fudan.dsm.kvmatch.tsfiledb.common;
+package cn.edu.fudan.dsm.kvmatch.iotdb.common;
 
-import cn.edu.thu.tsfile.common.utils.Pair;
+import cn.edu.tsinghua.tsfile.common.utils.Pair;
 
 import java.util.ArrayList;
 import java.util.List;

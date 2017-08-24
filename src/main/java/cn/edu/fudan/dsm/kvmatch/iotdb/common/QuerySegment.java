@@ -1,4 +1,4 @@
-package cn.edu.fudan.dsm.kvmatch.tsfiledb.common;
+package cn.edu.fudan.dsm.kvmatch.iotdb.common;
 
 /**
  * @author Jiaye Wu

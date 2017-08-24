@@ -1,4 +1,4 @@
-package cn.edu.fudan.dsm.kvmatch.tsfiledb.statistic;
+package cn.edu.fudan.dsm.kvmatch.iotdb.statistic;
 
 /**
  * Calculate mean value in stream fashion.

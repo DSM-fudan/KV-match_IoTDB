@@ -1,8 +1,8 @@
-package cn.edu.fudan.dsm.kvmatch.tsfiledb.utils;
+package cn.edu.fudan.dsm.kvmatch.iotdb.utils;
 
-import cn.edu.thu.tsfile.common.exception.UnSupportedDataTypeException;
-import cn.edu.thu.tsfile.common.utils.Pair;
-import cn.edu.thu.tsfile.timeseries.read.support.Field;
+import cn.edu.tsinghua.tsfile.common.exception.UnSupportedDataTypeException;
+import cn.edu.tsinghua.tsfile.common.utils.Pair;
+import cn.edu.tsinghua.tsfile.timeseries.read.support.Field;
 
 import java.util.ArrayList;
 import java.util.List;
