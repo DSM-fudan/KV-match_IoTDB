@@ -7,6 +7,7 @@ import cn.edu.tsinghua.tsfile.common.utils.Pair;
 import org.apache.commons.io.FileUtils;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -18,6 +19,8 @@ import java.util.Map;
  * @author Ningting Pan
  */
 public class IndexFileWriter implements Closeable {
+
+    private static final String BUILDING_SUFFIX = ".building";
 
     private String targetFilePath;
 
@@ -71,10 +74,13 @@ public class IndexFileWriter implements Closeable {
     @Override
     public void close() throws IOException {
         writer.close();
-        // rename the building file to desired name
+        // rename the building file to desired name, delete the old obsolete file at first
         File targetFile = new File(targetFilePath);
         FileUtils.deleteQuietly(targetFile);
-        FileUtils.moveFile(new File(targetFilePath + ".building"), targetFile);
+        File tmpFile = new File(targetFilePath + BUILDING_SUFFIX);
+        if (!tmpFile.renameTo(targetFile)) {
+            throw new IOException("Failed to rename index file '" + tmpFile + "' to '" + targetFile + "'");
+        }
     }
 
     private void writeOffsetInfo() throws IOException {
