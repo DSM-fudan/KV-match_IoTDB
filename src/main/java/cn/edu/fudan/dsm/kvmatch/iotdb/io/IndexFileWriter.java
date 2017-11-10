@@ -32,7 +32,7 @@ public class IndexFileWriter implements Closeable {
 
     public IndexFileWriter(String targetFilePath) throws IOException {
         this.targetFilePath = targetFilePath;
-        File file = new File(targetFilePath + ".building");
+        File file = new File(targetFilePath + BUILDING_SUFFIX);
         FileUtils.forceMkdirParent(file);
         this.writer = new BufferedOutputStream(new FileOutputStream(file));
     }
