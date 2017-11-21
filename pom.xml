@@ -6,7 +6,7 @@
 
     <groupId>cn.edu.fudan.dsm</groupId>
     <artifactId>kvmatch-iotdb</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 
     <name>KV-match on IoTDB</name>
     <description>KV-match timeseries subsequence matching on IoTDB</description>
@@ -156,7 +156,7 @@
         <dependency>
             <groupId>cn.edu.tsinghua</groupId>
             <artifactId>tsfile</artifactId>
-            <version>0.1.2</version>
+            <version>0.2.0</version>
         </dependency>
         <!-- Logging related dependencies -->
         <dependency>
